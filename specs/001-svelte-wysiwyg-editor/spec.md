@@ -8,6 +8,16 @@
 
 **Input**: User description: "Feature: Svelte WYSIWYG Editor with Local Persistence and Static Export. Primary goal: create a modern in-browser WYSIWYG editor that lets users design pages visually and export a static site bundle. Core requirements include responsive modern UI, real-time visual editing, autosave and restore from local storage, manual snapshot and reset controls, and ZIP export of HTML/CSS/JS that runs without build tooling. User experience requires intuitive controls, keyboard shortcuts, accessibility support, and non-blocking operation feedback."
 
+## Clarifications
+
+### Session 2026-06-02
+
+- Q: What local persistence model should be used for project data? -> A: Multi-project local registry with active project id pointer.
+- Q: How should user-defined behavior be handled for safety in v1? -> A: Safe interaction presets only; no arbitrary JavaScript authoring.
+- Q: What export naming/versioning strategy should enforce deterministic builds? -> A: Canonical fixed filenames and deterministic ordering.
+- Q: How should autosave behave when localStorage quota is exceeded? -> A: Show persistent storage-full warning, keep editing active, and disable autosave until storage is available.
+- Q: What browser support policy should be used for v1? -> A: Best-effort browser support with no formal target matrix.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Design and Export a Page (Priority: P1)
@@ -40,7 +50,6 @@ A creator can leave and return to editing without losing progress because the sy
 2. **Given** a saved local state exists, **When** the user reopens the application, **Then** the last saved project state is restored automatically.
 3. **Given** the user chooses reset, **When** they confirm reset, **Then** local persisted state is cleared and the editor returns to a clean project state.
 
----
 
 ### User Story 3 - Work Efficiently with Accessible Controls (Priority: P3)
 
@@ -64,12 +73,13 @@ A creator uses intuitive controls, keyboard shortcuts, and accessible UI afforda
 - Export is requested when the project has no editable elements.
 - Imported media references are unavailable at export time.
 - Very large projects cause slower rendering or save frequency contention.
+- Local storage quota exceeded during autosave requires non-blocking degraded mode with user-visible recovery actions.
 
 ## Constitution Alignment *(mandatory)*
 
 - **CA-001 Visual Truth**: Editor preview and exported output for supported elements and styles MUST remain behaviorally consistent for defined acceptance scenarios.
 - **CA-002 Export Artifact Integrity**: Export MUST produce a single ZIP containing at least one HTML file, one CSS file, and one JavaScript file with valid references.
-- **CA-003 Static Portability**: Exported output MUST run as static files in modern browsers without a build step or server-side runtime dependency.
+- **CA-003 Static Portability**: Exported output MUST run as static files in modern browsers without a build step or server-side runtime dependency, using best-effort support in v1 without a formal browser matrix.
 - **CA-004 Safety by Default**: User-authored content and generated scripts MUST be validated/sanitized to reduce unsafe execution patterns in preview and export.
 - **CA-005 Determinism**: Repeated exports from the same unchanged project state MUST produce equivalent file structure and behavior.
 - **CA-006 Accessibility & Performance**: Core workflows MUST support keyboard navigation and maintain responsive interaction under normal project sizes.
@@ -84,19 +94,30 @@ A creator uses intuitive controls, keyboard shortcuts, and accessible UI afforda
 - **FR-004**: System MUST autosave project state to browser local storage using a debounced strategy during active editing.
 - **FR-005**: System MUST restore the most recent valid project state from local storage when the application is reopened.
 - **FR-006**: System MUST provide explicit project actions for new project, rename project, duplicate project, snapshot save, and reset.
+- **FR-013**: System MUST maintain a local project registry in local storage that supports multiple projects and one active project identifier for resume and project switching.
 - **FR-007**: System MUST provide ZIP export containing static HTML, CSS, and JavaScript assets representing the current project.
+- **FR-018**: System MUST detect local storage quota failures, disable further autosave attempts, and present a persistent storage-full warning with recovery guidance.
+- **FR-019**: System MUST keep editing available during storage-full mode and provide user actions to free storage, snapshot/export manually, and re-enable autosave when capacity returns.
 - **FR-008**: System MUST ensure exported assets can be opened directly in a browser without additional build or install steps.
 - **FR-009**: System MUST provide undo and redo for recent editing actions.
 - **FR-010**: System MUST provide keyboard-navigable controls with visible focus states and accessible labeling for interactive controls.
 - **FR-011**: System MUST provide non-blocking status feedback for autosave, restore, snapshot, reset, and export operations.
 - **FR-012**: System MUST validate user inputs for content/style editing and show actionable feedback for invalid values.
+- **FR-014**: System MUST support interactive behavior through predefined safe interaction presets and MUST NOT allow arbitrary user-authored JavaScript in editor authoring.
+- **FR-015**: System MUST export only sanctioned interaction logic generated from selected presets.
+- **FR-016**: System MUST generate exports using canonical fixed filenames and deterministic file ordering for equivalent project states.
+- **FR-017**: System MUST produce each ZIP as a clean canonical file set without embedding prior exports or timestamp-derived file naming.
+- **FR-020**: System MUST document browser support as best-effort for modern browsers in v1 and MUST NOT claim a formal guaranteed browser compatibility matrix.
 
 ### Key Entities *(include if feature involves data)*
 
 - **Project**: A user-authored page design including metadata (name, timestamps), structure, content, style values, and editor preferences.
+- **Project Registry**: A local storage index containing multiple project records and the current active project identifier.
 - **Canvas Element**: A visual node in the page structure with type, hierarchy, content attributes, and presentation properties.
+- **Interaction Preset**: A predefined behavior template that maps user-selected options to sanctioned static JavaScript output.
 - **Session Snapshot**: A persisted representation of current project state saved in browser storage for restore and recovery.
 - **Export Bundle**: The generated static output package containing file manifest, HTML document(s), style sheet(s), and script file(s).
+- **Export Manifest**: A canonical ordering and naming definition used to produce deterministic ZIP contents.
 - **Operation Status Event**: A state record for save/restore/export actions including operation type, timestamp, and outcome.
 
 ## Success Criteria *(mandatory)*
@@ -116,3 +137,4 @@ A creator uses intuitive controls, keyboard shortcuts, and accessible UI afforda
 - Imported assets used in the editor are either embedded or resolved in a way that remains valid in exported output.
 - Mobile phone authoring is not a primary workflow for v1, but desktop and tablet layouts are in scope.
 - Local storage availability and normal browser quota conditions are assumed for persistence metrics.
+- Browser support is best-effort for modern browsers in v1 without a guaranteed compatibility matrix.
