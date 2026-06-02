@@ -16,17 +16,21 @@ export function projectStorageKey(projectId: string): string {
 
 export function createAutosaveCoordinator(delayMs = 500): AutosaveCoordinator {
   let timer: ReturnType<typeof setTimeout> | null = null
+  let paused = false
 
   const flush = (project: Project): void => {
     const ok = saveToLocalStorage(projectStorageKey(project.id), project)
     if (ok) {
+      paused = false
       setOperationStatus('autosave', 'success', 'Project saved locally')
     } else {
+      paused = true
       setOperationStatus('autosave', 'error', 'Storage full: autosave paused')
     }
   }
 
   const schedule = (project: Project): void => {
+    if (paused) return
     setOperationStatus('autosave', 'running', 'Saving...')
 
     if (timer) {

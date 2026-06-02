@@ -113,7 +113,9 @@
     document.body.appendChild(anchor)
     anchor.click()
     anchor.remove()
-    URL.revokeObjectURL(href)
+    setTimeout(() => {
+      URL.revokeObjectURL(href)
+    }, 0)
   }
 
   async function exportZip(): Promise<void> {

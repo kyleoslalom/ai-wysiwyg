@@ -77,9 +77,10 @@ function renderRuntimeScript(project: Project): string {
       const preset = getInteractionPreset(binding.presetKey)
       if (!preset) return ''
 
-      const nodeLookup = `document.querySelector('[data-node-id="${binding.elementId}"]')`
+      const selector = `[data-node-id="${binding.elementId}"]`
+      const nodeLookup = `document.querySelector(${JSON.stringify(selector)})`
       const actionCode = preset.toRuntime(binding)
-      return `(() => { const node = ${nodeLookup}; if (!node) return; node.addEventListener('${binding.eventType}', () => { ${actionCode}; }); })();`
+      return `(() => { const node = ${nodeLookup}; if (!node) return; node.addEventListener(${JSON.stringify(binding.eventType)}, () => { ${actionCode}; }); })();`
     })
     .filter((line) => line.length > 0)
 

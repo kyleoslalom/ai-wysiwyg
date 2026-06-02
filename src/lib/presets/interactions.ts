@@ -7,7 +7,8 @@ export interface InteractionPreset {
 }
 
 function toNodeLookup(elementId: string): string {
-  return `document.querySelector('[data-node-id="${elementId}"]')`
+  const selector = `[data-node-id="${elementId}"]`
+  return `document.querySelector(${JSON.stringify(selector)})`
 }
 
 export const interactionPresets: InteractionPreset[] = [
@@ -31,7 +32,8 @@ export const interactionPresets: InteractionPreset[] = [
     label: 'Scroll To Element',
     toRuntime(binding) {
       const target = String(binding.config.targetId ?? binding.elementId)
-      return `document.querySelector('[data-node-id="${target}"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })`
+      const selector = `[data-node-id="${target}"]`
+      return `document.querySelector(${JSON.stringify(selector)})?.scrollIntoView({ behavior: 'smooth', block: 'start' })`
     },
   },
 ]
