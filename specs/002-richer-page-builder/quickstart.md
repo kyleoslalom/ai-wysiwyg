@@ -72,3 +72,59 @@ npm run test:e2e
 ```
 
 If e2e fails due missing browser binaries, install via `npx playwright install` and rerun.
+
+## 8) Local Test Execution Notes
+
+### Unit and Integration Tests
+
+```bash
+# Run all unit and integration tests
+npm run test
+
+# Run a specific file
+npx vitest run tests/unit/editor/foundation-rules.test.ts
+
+# Watch mode during development
+npm run test:watch
+```
+
+### Contract Tests
+
+Contract tests validate schema compliance for layer nodes and export manifests:
+
+```bash
+npx vitest run tests/contract/
+```
+
+### E2E and Parity Tests
+
+```bash
+# Run all e2e tests (requires Playwright browsers)
+npm run test:e2e
+
+# Run only the parity fixture tests
+npx playwright test tests/e2e/parity-mixed-layout.spec.ts
+
+# Run with headed browser for debugging
+npx playwright test --headed
+```
+
+### Parity Fixture
+
+The mixed-layout fixture is located at `tests/e2e/fixtures/mixed-layout.project.json`. It contains:
+- A root section with header, text, columns, and picture layers.
+- An embedded image asset for verifying canonical export paths.
+
+### Coverage Expectations
+
+| Test Type | Coverage Target |
+|-----------|----------------|
+| Unit | Domain logic, validators, services |
+| Integration | Layer CRUD, inspector, export, parity |
+| Contract | Layer node schema, export manifest |
+| E2E | Full editor workflows, parity fixture |
+
+### Parity Gate Thresholds
+
+- DOM structure equality: 100% for supported nodes.
+- Visual diff: ≤ 1% (pixelmatch) for rendered fixture pages.
