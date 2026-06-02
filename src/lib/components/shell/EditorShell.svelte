@@ -1,95 +1,64 @@
 <script lang="ts">
+  import { onDestroy, onMount } from 'svelte'
   import type { Project } from '../../domain/types'
   import { updateElementContent, updateElementInlineStyle } from '../../domain/project/canvas-element'
+  import { createSampleProject } from '../../domain/project/sample-project'
   import CanvasViewport from '../canvas/CanvasViewport.svelte'
   import LayersTree from '../layers/LayersTree.svelte'
   import PropertiesPanel from '../inspector/PropertiesPanel.svelte'
   import TopBar from './TopBar.svelte'
+  import StorageStatusBanner from './StorageStatusBanner.svelte'
+  import OperationStatus from './OperationStatus.svelte'
   import { operationStatusStore } from '../../stores/status'
   import { setOperationStatus } from '../../stores/status'
   import { exportProjectZip } from '../../services/export/exporter'
   import { markDirty, markSaved } from '../../stores/editor'
+  import { createAutosaveCoordinator } from '../../services/persistence/autosave'
+  import { bootstrapRestore } from '../../services/persistence/restore'
+  import { moveFocusToNextPanel } from '../../services/a11y/focus-manager'
+  import { registerGlobalShortcuts } from '../../services/editor/shortcuts'
+  import {
+    editorActionHistoryStore,
+    recordProjectSnapshot,
+    redo,
+    undo,
+  } from '../../stores/editor-actions'
 
-  const now = new Date().toISOString()
+  const autosave = createAutosaveCoordinator(500)
 
-  let project: Project = {
-    id: 'project-1',
-    name: 'ai-wysiwyg',
-    createdAt: now,
-    updatedAt: now,
-    rootNodeId: 'root',
-    version: 1,
-    interactions: [
-      {
-        id: 'interaction-1',
-        elementId: 'button-1',
-        eventType: 'click',
-        presetKey: 'toggle-class',
-        config: { className: 'is-active' },
-      },
-    ],
-    styles: {
-      headingStyle: {
-        id: 'headingStyle',
-        selector: '[data-node-id="heading-1"]',
-        declarations: {
-          fontSize: '1.4rem',
-          fontWeight: '700',
-          color: '#111827',
-        },
-        order: 1,
-      },
-      textStyle: {
-        id: 'textStyle',
-        selector: '[data-node-id="text-1"]',
-        declarations: {
-          lineHeight: '1.6',
-          color: '#334155',
-        },
-        order: 2,
-      },
-    },
-    nodes: {
-      root: {
-        id: 'root',
-        type: 'container',
-        parentId: null,
-        children: ['heading-1', 'text-1', 'button-1'],
-        content: {},
-        classList: ['page-root'],
-      },
-      'heading-1': {
-        id: 'heading-1',
-        type: 'heading',
-        parentId: 'root',
-        children: [],
-        content: { text: 'Welcome to ai-wysiwyg' },
-        classList: ['hero-heading'],
-      },
-      'text-1': {
-        id: 'text-1',
-        type: 'text',
-        parentId: 'root',
-        children: [],
-        content: { text: 'Edit this copy and export a static page.' },
-        classList: ['hero-copy'],
-      },
-      'button-1': {
-        id: 'button-1',
-        type: 'button',
-        parentId: 'root',
-        children: [],
-        content: { text: 'Primary Action' },
-        classList: ['hero-cta'],
-      },
-    },
-  }
+  let project: Project = createSampleProject()
 
   let selectedElementId: string | null = 'text-1'
   let isExporting = false
+  let activePanel = 'layers'
+  let unregisterShortcuts: (() => void) | null = null
 
   $: statuses = $operationStatusStore
+  $: actionHistory = $editorActionHistoryStore
   $: selectedElement = selectedElementId ? project.nodes[selectedElementId] ?? null : null
+  $: storageBannerVisible = statuses.autosave.state === 'error'
+
+  onMount(() => {
+    const restored = bootstrapRestore()
+    project = restored.project
+    selectedElementId = restored.project.nodes['text-1'] ? 'text-1' : restored.project.rootNodeId
+
+    unregisterShortcuts = registerGlobalShortcuts({
+      undo: () => undoAction(),
+      redo: () => redoAction(),
+      exportZip: () => {
+        void exportZip()
+      },
+      focusNextPanel: () => {
+        moveFocusToNextPanel()
+      },
+    })
+  })
+
+  onDestroy(() => {
+    autosave.stop()
+    unregisterShortcuts?.()
+  })
 
   function selectElement(id: string): void {
     selectedElementId = id
@@ -97,14 +66,40 @@
 
   function updateSelectedText(value: string): void {
     if (!selectedElementId) return
+    recordProjectSnapshot(project)
     project = updateElementContent(project, selectedElementId, { text: value })
+    autosave.schedule(project)
     markDirty()
   }
 
   function updateSelectedColor(value: string): void {
     if (!selectedElementId) return
+    recordProjectSnapshot(project)
     project = updateElementInlineStyle(project, selectedElementId, { color: value })
+    autosave.schedule(project)
     markDirty()
+  }
+
+  function retryAutosave(): void {
+    autosave.flush(project)
+  }
+
+  function undoAction(): void {
+    const previous = undo(project)
+    if (!previous) return
+
+    project = previous
+    autosave.schedule(project)
+    setOperationStatus('validation', 'success', 'Undo applied')
+  }
+
+  function redoAction(): void {
+    const next = redo(project)
+    if (!next) return
+
+    project = next
+    autosave.schedule(project)
+    setOperationStatus('validation', 'success', 'Redo applied')
   }
 
   function triggerDownload(bytes: Uint8Array, filename: string): void {
@@ -140,17 +135,48 @@
 
 <div class="editor-shell" role="application" aria-label="WYSIWYG editor shell">
   <TopBar projectName={project.name} {isExporting} onExport={exportZip} />
+  <StorageStatusBanner visible={storageBannerVisible} message={statuses.autosave.message ?? ''} onRetry={retryAutosave} />
 
   <main class="workspace">
-    <div class="panel">
+    <div
+      class="panel"
+      tabindex="-1"
+      data-editor-panel
+      data-panel-focusable="true"
+      data-panel-id="layers"
+      data-testid="panel-layers"
+      onfocus={() => {
+        activePanel = 'layers'
+      }}
+    >
       <LayersTree {project} {selectedElementId} onSelect={selectElement} />
     </div>
 
-    <div class="canvas">
+    <div
+      class="canvas"
+      tabindex="-1"
+      data-editor-panel
+      data-panel-focusable="true"
+      data-panel-id="canvas"
+      data-testid="panel-canvas"
+      onfocus={() => {
+        activePanel = 'canvas'
+      }}
+    >
       <CanvasViewport {project} {selectedElementId} onSelect={selectElement} />
     </div>
 
-    <div class="panel">
+    <div
+      class="panel"
+      tabindex="-1"
+      data-editor-panel
+      data-panel-focusable="true"
+      data-panel-id="inspector"
+      data-testid="panel-inspector"
+      onfocus={() => {
+        activePanel = 'inspector'
+      }}
+    >
       <PropertiesPanel
         {selectedElement}
         onContentChange={updateSelectedText}
@@ -163,6 +189,9 @@
     <span>Autosave: {statuses.autosave.state}</span>
     <span>Restore: {statuses.restore.state}</span>
     <span>Export: {statuses.export.state}</span>
+    <span>History: {actionHistory.past.length} undo / {actionHistory.future.length} redo</span>
+    <span>Panel: {activePanel}</span>
+    <OperationStatus />
   </footer>
 </div>
 

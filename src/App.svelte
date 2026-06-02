@@ -1,8 +1,8 @@
 <script lang="ts">
   import EditorShell from './lib/components/shell/EditorShell.svelte'
-  import { initializeRegistry } from './lib/stores/projects'
+  import { bootstrapRestore } from './lib/services/persistence/restore'
 
-  initializeRegistry()
+  bootstrapRestore()
 </script>
 
 <EditorShell />

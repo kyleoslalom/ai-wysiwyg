@@ -78,17 +78,17 @@
 
 ### Tests for User Story 2
 
-- [ ] T029 [P] [US2] Add unit tests for project registry CRUD and active pointer behavior in tests/unit/persistence/project-registry.test.ts
-- [ ] T030 [P] [US2] Add integration test for restore-on-reload flow in tests/integration/restore-session.spec.ts
-- [ ] T031 [P] [US2] Add integration test for storage-full degraded mode behavior in tests/integration/storage-quota-mode.spec.ts
+- [x] T029 [P] [US2] Add unit tests for project registry CRUD and active pointer behavior in tests/unit/persistence/project-registry.test.ts
+- [x] T030 [P] [US2] Add integration test for restore-on-reload flow in tests/integration/restore-session.spec.ts
+- [x] T031 [P] [US2] Add integration test for storage-full degraded mode behavior in tests/integration/storage-quota-mode.spec.ts
 
 ### Implementation for User Story 2
 
-- [ ] T032 [US2] Implement debounced autosave coordinator in src/lib/services/persistence/autosave.ts
-- [ ] T033 [US2] Implement startup restore bootstrap flow in src/lib/services/persistence/restore.ts
-- [ ] T034 [US2] Implement snapshot, rename, duplicate, and reset project commands in src/lib/services/persistence/project-commands.ts
-- [ ] T035 [US2] Implement persistent storage-full warning banner and recovery controls in src/lib/components/shell/StorageStatusBanner.svelte
-- [ ] T036 [US2] Wire persistence lifecycle into page initialization in src/routes/+page.svelte
+- [x] T032 [US2] Implement debounced autosave coordinator in src/lib/services/persistence/autosave.ts
+- [x] T033 [US2] Implement startup restore bootstrap flow in src/lib/services/persistence/restore.ts
+- [x] T034 [US2] Implement snapshot, rename, duplicate, and reset project commands in src/lib/services/persistence/project-commands.ts
+- [x] T035 [US2] Implement persistent storage-full warning banner and recovery controls in src/lib/components/shell/StorageStatusBanner.svelte
+- [x] T036 [US2] Wire persistence lifecycle into page initialization in src/routes/+page.svelte
 
 **Checkpoint**: User Story 2 is independently functional with robust local persistence behavior.
 
@@ -102,15 +102,15 @@
 
 ### Tests for User Story 3
 
-- [ ] T037 [P] [US3] Add integration test for keyboard-only navigation in shell and panels in tests/integration/keyboard-navigation.spec.ts
-- [ ] T038 [P] [US3] Add unit tests for shortcut mappings and undo/redo triggers in tests/unit/editor/shortcuts.test.ts
+- [x] T037 [P] [US3] Add integration test for keyboard-only navigation in shell and panels in tests/integration/keyboard-navigation.spec.ts
+- [x] T038 [P] [US3] Add unit tests for shortcut mappings and undo/redo triggers in tests/unit/editor/shortcuts.test.ts
 
 ### Implementation for User Story 3
 
-- [ ] T039 [US3] Implement global shortcut handling service in src/lib/services/editor/shortcuts.ts
-- [ ] T040 [US3] Implement focus management and ARIA helper utilities in src/lib/services/a11y/focus-manager.ts
-- [ ] T041 [US3] Implement operation status live region component in src/lib/components/shell/OperationStatus.svelte
-- [ ] T042 [US3] Integrate shortcuts and accessibility flows in editor shell in src/lib/components/shell/EditorShell.svelte
+- [x] T039 [US3] Implement global shortcut handling service in src/lib/services/editor/shortcuts.ts
+- [x] T040 [US3] Implement focus management and ARIA helper utilities in src/lib/services/a11y/focus-manager.ts
+- [x] T041 [US3] Implement operation status live region component in src/lib/components/shell/OperationStatus.svelte
+- [x] T042 [US3] Integrate shortcuts and accessibility flows in editor shell in src/lib/components/shell/EditorShell.svelte
 
 **Checkpoint**: User Story 3 is independently functional with accessibility and productivity controls.
 
@@ -120,13 +120,13 @@
 
 **Purpose**: Final cross-story hardening, parity checks, and documentation.
 
-- [ ] T043 [P] Add deterministic export regression integration test in tests/integration/deterministic-export.spec.ts
-- [ ] T044 [P] Add static-host portability contract test in tests/contract/static-host-portability.contract.test.ts
-- [ ] T045 Add startup performance smoke test for render budget in tests/integration/startup-performance.spec.ts
-- [ ] T046 Add documentation for architecture and data flow in docs/editor-architecture.md
-- [ ] T047 Record quickstart validation outcomes and troubleshooting notes in specs/001-svelte-wysiwyg-editor/quickstart.md
-- [ ] T048 Add browser-support policy documentation and verification notes in docs/browser-support.md
-- [ ] T049 Add usability validation protocol for SC-003 timing metric in docs/usability-validation.md
+- [x] T043 [P] Add deterministic export regression integration test in tests/integration/deterministic-export.spec.ts
+- [x] T044 [P] Add static-host portability contract test in tests/contract/static-host-portability.contract.test.ts
+- [x] T045 Add startup performance smoke test for render budget in tests/integration/startup-performance.spec.ts
+- [x] T046 Add documentation for architecture and data flow in docs/editor-architecture.md
+- [x] T047 Record quickstart validation outcomes and troubleshooting notes in specs/001-svelte-wysiwyg-editor/quickstart.md
+- [x] T048 Add browser-support policy documentation and verification notes in docs/browser-support.md
+- [x] T049 Add usability validation protocol for SC-003 timing metric in docs/usability-validation.md
 
 ---
 

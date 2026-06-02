@@ -79,3 +79,13 @@ npx playwright test
 3. Unzip and verify files exist: `index.html`, `assets/styles.css`, `assets/app.js`, `manifest.json`.
 4. Re-export unchanged project and compare file names/order for determinism.
 5. Simulate storage pressure and verify persistent warning + autosave pause + manual export remains available.
+
+## 8. Validation outcomes (2026-06-02)
+1. `npm run test` passes for unit, integration, and contract suites including persistence, accessibility, and deterministic export checks.
+2. `npm run check` passes with no Svelte or TypeScript diagnostics.
+3. Deterministic ZIP output confirmed by regression tests using fixed `generatedAt` timestamp.
+
+## 9. Troubleshooting notes
+1. If component tests fail with server runtime mount errors, ensure Vitest resolves browser conditions in `vitest.config.ts`.
+2. If export fails, inspect operation status and storage banner for quota/Blob errors.
+3. If restore does not load previous work, verify both `ai-wysiwyg:project-registry` and `ai-wysiwyg:project:<id>` keys exist.
