@@ -78,6 +78,15 @@
 - What happens when [boundary condition]?
 - How does system handle [error scenario]?
 
+## Constitution Alignment *(mandatory)*
+
+- **CA-001 Visual Truth**: Define how in-editor behavior will be verified against exported behavior.
+- **CA-002 Export Artifact Integrity**: Specify required ZIP contents (HTML, CSS, JS) and acceptance checks.
+- **CA-003 Static Portability**: Confirm exported output runs without build tooling or server dependencies.
+- **CA-004 Safety by Default**: Define sanitization and unsafe content handling expectations.
+- **CA-005 Determinism**: State reproducibility criteria for repeated exports from identical project state.
+- **CA-006 Accessibility & Performance**: State baseline accessibility and responsiveness expectations.
+
 ## Requirements *(mandatory)*
 
 <!--

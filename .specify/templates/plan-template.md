@@ -40,7 +40,14 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- Visual truth defined: plan includes how editor rendering will be validated against exported output.
+- Export-first scope: plan preserves reliable ZIP export of static HTML/CSS/JS as a core outcome.
+- Standards portability: plan avoids mandatory proprietary runtimes and keeps static-hosting portability.
+- Readability target: plan describes output organization and naming approach for human maintainability.
+- Security by default: plan includes sanitization and script-safety controls for user content and export.
+- Determinism strategy: plan explains how reproducible exports are ensured for identical project state.
+- Accessibility and performance baseline: plan includes baseline checks for keyboard/touch usability and responsive operation.
+- Testing obligations: plan includes regression validation for rendering parity and export integrity.
 
 ## Project Structure
 

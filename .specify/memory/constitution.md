@@ -1,50 +1,105 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+Version change: template-placeholder -> 1.0.0
+Modified principles:
+- template principle 1 -> I. Visual Truth First
+- template principle 2 -> II. Export Is the Product
+- template principle 3 -> III. Standards Over Lock-In
+- template principle 4 -> IV. Human-Readable Output
+- template principle 5 -> V. Safe by Default
+Added principles:
+- VI. Deterministic Builds
+- VII. Progressive Capability
+- VIII. Browser-Native Experience
+Added sections:
+- Non-Negotiable Outcomes
+- Definition of Done for Major Features
+Removed sections:
+- None
+Templates requiring updates:
+- ✅ .specify/templates/plan-template.md
+- ✅ .specify/templates/spec-template.md
+- ✅ .specify/templates/tasks-template.md
+- ⚠ pending: .specify/templates/commands/*.md (directory does not exist in this repository)
+Follow-up TODOs:
+- None
+-->
+
+# ai-wysiwyg Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Visual Truth First
+The canvas MUST faithfully represent final output behavior and structure. A user action that
+appears correct in the editor MUST produce equivalent rendered output after export. This keeps
+authoring trust high and prevents hidden runtime surprises.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Export Is the Product
+The primary deliverable MUST be a reliable ZIP package containing static HTML, CSS, and
+JavaScript. Editor-only capabilities that do not improve export quality, integrity, or
+usability MUST NOT take priority over export outcomes.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Standards Over Lock-In
+Generated output MUST use open web standards and remain portable across common static hosts.
+Exported projects MUST run in modern browsers without a build step, proprietary runtime, or
+server-side dependency.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Human-Readable Output
+Export artifacts MUST be understandable by humans and maintainable by downstream developers.
+File structure, naming, and formatting MUST favor clear handoff, debugging, and direct editing.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Safe by Default
+The editor and export pipeline MUST apply secure defaults. Unsafe script injection patterns,
+untrusted content execution paths, and export-time code assembly that increases obvious XSS risk
+MUST be blocked or sanitized.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### VI. Deterministic Builds
+The same saved project state MUST produce the same export bundle contents across supported
+browsers. Any non-deterministic behavior in output ordering, naming, or generated code MUST be
+treated as a defect.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### VII. Progressive Capability
+Core editing and export workflows MUST remain stable and performant before advanced features are
+added. New complexity MUST be introduced only when it does not compromise baseline authoring,
+preview, or export reliability.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+### VIII. Browser-Native Experience
+The product MUST run fully in-browser and provide accessible interactions on modern desktop and
+mobile browsers. Feature design MUST preserve usability for keyboard, pointer, and touch input.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## Non-Negotiable Outcomes
+
+- Users MUST be able to create or modify page layout, style, and behavior visually.
+- Users MUST be able to export a ZIP containing at least one HTML file, one CSS file, and one
+	JavaScript file.
+- Exported artifacts MUST run statically in a browser without a build step.
+- Exported projects MUST be portable to common static hosting providers.
+- Core workflows MUST remain accessible and performant for normal project sizes.
+
+## Definition of Done for Major Features
+
+- Feature behavior MUST be correct both in-editor and in exported output.
+- Exported code MUST remain standards-compliant and human-readable.
+- Regression tests MUST cover rendering parity and export integrity.
+- Security and accessibility checks MUST pass for affected workflows.
+- Documentation MUST explain user-visible behavior and export impact.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes conflicting local conventions for feature planning and delivery.
+Amendments require: (1) a written rationale, (2) explicit updates to affected templates and
+guidance files, and (3) approval in the same change set as the constitution edit.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+Versioning policy follows semantic versioning:
+- MAJOR for backward-incompatible principle removals or redefinitions.
+- MINOR for new principles or materially expanded governance sections.
+- PATCH for clarifications, wording refinements, and typo-level edits.
+
+Compliance review expectations:
+- Every plan MUST complete a constitution check before research and after design.
+- Every feature spec MUST document visual/export parity requirements and measurable outcomes.
+- Every task list MUST include validation work for export integrity, accessibility, and security.
+- Pull requests that violate constitutional requirements MUST include a documented exception and
+	mitigation plan or be rejected.
+
+**Version**: 1.0.0 | **Ratified**: 2026-06-02 | **Last Amended**: 2026-06-02
