@@ -93,7 +93,7 @@
     {#each project.nodes[project.rootNodeId]?.children ?? [] as sectionId}
       {@const section = project.nodes[sectionId]}
       {#if section}
-        <li role="treeitem" aria-expanded="true">
+        <li role="treeitem" aria-expanded="true" aria-selected={selectedNodeId === section.id}>
           <button
             type="button"
             class="layer-item layer-section"
@@ -119,7 +119,7 @@
               {#each section.children as childId}
                 {@const child = project.nodes[childId]}
                 {#if child}
-                  <li role="treeitem">
+                  <li role="treeitem" aria-selected={selectedNodeId === child.id}>
                     <button
                       type="button"
                       class="layer-item layer-child"

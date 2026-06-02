@@ -55,7 +55,7 @@
                     data-node-id={childNode.id}
                     data-testid={`canvas-node-${childNode.id}`}
                     style={getNodeStyle(childNode)}
-                    onclick|stopPropagation={() => onSelect(childNode.id)}
+                    onclick={(e) => { e.stopPropagation(); onSelect(childNode.id); }}
                   >
                     <svelte:element this={hp.level} class="header-inner">{hp.text || 'Heading'}</svelte:element>
                   </button>
@@ -68,7 +68,7 @@
                     data-node-id={childNode.id}
                     data-testid={`canvas-node-${childNode.id}`}
                     style={getNodeStyle(childNode)}
-                    onclick|stopPropagation={() => onSelect(childNode.id)}
+                    onclick={(e) => { e.stopPropagation(); onSelect(childNode.id); }}
                   >
                     {tp.content || 'Text'}
                   </button>
@@ -81,7 +81,7 @@
                     data-node-id={childNode.id}
                     data-testid={`canvas-node-${childNode.id}`}
                     style="display: grid; grid-template-columns: repeat({cp.columnCount}, 1fr); gap: {cp.gap}; {getNodeStyle(childNode)}"
-                    onclick|stopPropagation={() => onSelect(childNode.id)}
+                    onclick={(e) => { e.stopPropagation(); onSelect(childNode.id); }}
                     aria-label={`${cp.columnCount}-column layout`}
                   >
                     {#each { length: cp.columnCount } as _, i}
@@ -96,7 +96,7 @@
                     class:selected={selectedNodeId === childNode.id}
                     data-node-id={childNode.id}
                     data-testid={`canvas-node-${childNode.id}`}
-                    onclick|stopPropagation={() => onSelect(childNode.id)}
+                    onclick={(e) => { e.stopPropagation(); onSelect(childNode.id); }}
                   >
                     {#if pp.src}
                       <img src={pp.src} alt={pp.alt} class="canvas-img" />

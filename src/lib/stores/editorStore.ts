@@ -5,6 +5,10 @@ import { validateLayerTree } from '../services/validator/layerTreeValidator'
 import { buildRenderModel } from '../services/editor/renderModel'
 import type { RenderModel } from '../services/editor/renderModel'
 import type { TreeValidationResult } from '../services/validator/layerTreeValidator'
+import { validateNodeProps } from '../services/validator/inspectorValidator'
+import type { InspectorValidationResult } from '../services/validator/inspectorValidator'
+import { validateColumnWidths } from '../services/editor/columnsLayout'
+import type { WidthValidationResult } from '../services/editor/columnsLayout'
 
 export interface RichEditorState {
   activeProjectId: string | null
@@ -95,3 +99,18 @@ export function getSelectedNode(
   if (!project || !selectedNodeId) return null
   return project.nodes[selectedNodeId] ?? null
 }
+
+export function getInspectorValidationForNode(node: LayerNode | null): InspectorValidationResult {
+  if (!node) return { valid: true, errors: [] }
+  return validateNodeProps(node)
+}
+
+export function getColumnsWidthNotice(
+  node: LayerNode | null,
+): WidthValidationResult {
+  if (!node || node.type !== 'columns') return { valid: true }
+  const props = node.props as { manualWidths?: number[] | null }
+  if (!props.manualWidths || props.manualWidths.length === 0) return { valid: true }
+  return validateColumnWidths(props.manualWidths)
+}
+

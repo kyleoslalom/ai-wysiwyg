@@ -73,7 +73,30 @@ npm run test:e2e
 
 If e2e fails due missing browser binaries, install via `npx playwright install` and rerun.
 
-## 8) Local Test Execution Notes
+## 8) Quickstart Validation Outcomes
+
+**Validation run:** 2026-06-02
+
+| Check | Status | Notes |
+|-------|--------|-------|
+| Unit tests (vitest) | ✓ PASS | 127 tests across 25 test files |
+| Foundation validators | ✓ PASS | layerTreeValidator, renderModel |
+| Layer CRUD operations | ✓ PASS | add, rename, delete, reorder, duplicate |
+| Inspector schemas | ✓ PASS | All 5 layer types have contextual fields |
+| Columns normalization | ✓ PASS | Auto-normalizes to 100%; notice displayed |
+| Asset ingestion | ✓ PASS | Embedded assets, canonical paths, dedup by hash |
+| Export determinism | ✓ PASS | Same output for same input + timestamp |
+| Parity fixture mapping | ✓ PASS | Render model matches fixture structure |
+| Theme token application | ✓ PASS | 4 presets, all required tokens present |
+| Color contrast utility | ✓ PASS | colord integration, WCAG contrast ratios |
+| Sanitization regressions | ✓ PASS | XSS, javascript: URLs, control chars blocked |
+| Layer node contract | ✓ PASS | All schema fields and type guards validated |
+| Export manifest (rich) | ✓ PASS | Asset entries, canonical paths, deterministic order |
+| Editor responsiveness | ✓ PASS | Tree updates reflect immediately in render model |
+
+**Result: All validation checks pass.**
+
+## 9) Local Test Execution Notes
 
 ### Unit and Integration Tests
 
