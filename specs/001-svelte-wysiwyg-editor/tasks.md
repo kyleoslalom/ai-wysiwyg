@@ -49,22 +49,22 @@
 
 ### Tests for User Story 1
 
-- [ ] T016 [P] [US1] Add unit tests for canvas node creation/reorder/style updates in tests/unit/editor/canvas-editing.test.ts
-- [ ] T017 [P] [US1] Add integration test for live preview parity during edits in tests/integration/preview-parity.spec.ts
-- [ ] T018 [P] [US1] Add contract test for deterministic export manifest structure in tests/contract/export-manifest.contract.test.ts
+- [x] T016 [P] [US1] Add unit tests for canvas node creation/reorder/style updates in tests/unit/editor/canvas-editing.test.ts
+- [x] T017 [P] [US1] Add integration test for live preview parity during edits in tests/integration/preview-parity.spec.ts
+- [x] T018 [P] [US1] Add contract test for deterministic export manifest structure in tests/contract/export-manifest.contract.test.ts
 
 ### Implementation for User Story 1
 
-- [ ] T019 [P] [US1] Implement canvas element domain helpers in src/lib/domain/project/canvas-element.ts
-- [ ] T020 [P] [US1] Implement style engine for editor preview and export mapping in src/lib/services/editor/style-engine.ts
-- [ ] T021 [US1] Implement canvas viewport rendering component in src/lib/components/canvas/CanvasViewport.svelte
-- [ ] T022 [US1] Implement layer tree management component in src/lib/components/layers/LayersTree.svelte
-- [ ] T023 [US1] Implement properties inspector editing panel in src/lib/components/inspector/PropertiesPanel.svelte
-- [ ] T024 [US1] Implement undo/redo action history manager in src/lib/stores/editor-actions.ts
-- [ ] T025 [US1] Implement safe interaction preset registry and mappings in src/lib/presets/interactions.ts
-- [ ] T026 [US1] Implement deterministic export builder and ZIP packing in src/lib/services/export/exporter.ts
-- [ ] T027 [US1] Wire export action and progress states in src/lib/components/shell/TopBar.svelte
-- [ ] T028 [US1] Add integration test for static ZIP loadability in browser in tests/integration/export-static.spec.ts
+- [x] T019 [P] [US1] Implement canvas element domain helpers in src/lib/domain/project/canvas-element.ts
+- [x] T020 [P] [US1] Implement style engine for editor preview and export mapping in src/lib/services/editor/style-engine.ts
+- [x] T021 [US1] Implement canvas viewport rendering component in src/lib/components/canvas/CanvasViewport.svelte
+- [x] T022 [US1] Implement layer tree management component in src/lib/components/layers/LayersTree.svelte
+- [x] T023 [US1] Implement properties inspector editing panel in src/lib/components/inspector/PropertiesPanel.svelte
+- [x] T024 [US1] Implement undo/redo action history manager in src/lib/stores/editor-actions.ts
+- [x] T025 [US1] Implement safe interaction preset registry and mappings in src/lib/presets/interactions.ts
+- [x] T026 [US1] Implement deterministic export builder and ZIP packing in src/lib/services/export/exporter.ts
+- [x] T027 [US1] Wire export action and progress states in src/lib/components/shell/TopBar.svelte
+- [x] T028 [US1] Add integration test for static ZIP loadability in browser in tests/integration/export-static.spec.ts
 
 **Checkpoint**: User Story 1 is independently functional and exportable.
 
