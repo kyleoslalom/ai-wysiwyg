@@ -8,6 +8,16 @@
 
 **Input**: User description: "Create a new feature specification to evolve the current Svelte WYSIWYG editor from basic element editing into a richer page builder with stronger visual parity and more expressive design controls. Add multiple layer types (header, section, text, columns, picture), type-aware inspector controls, improved canvas-to-export parity, and a more colorful and accessible UI style system."
 
+## Clarifications
+
+### Session 2026-06-02
+
+- Q: For picture layers, what source model should v1 require? -> A: Uploaded/selected images are embedded into export as local assets (canonical file paths).
+- Q: For v1, what should the strict nesting policy be for header layers? -> A: Header allowed only inside section, and root can only contain section.
+- Q: For v1, what should be the default responsive collapse behavior for columns? -> A: Auto-collapse to one column below 768px.
+- Q: For v1 canvas-to-export parity checks, what tolerance policy should be required? -> A: Up to 1% visual diff plus DOM structure equality for supported nodes.
+- Q: For v1 columns width controls, what rule should apply when manual widths do not sum to 100%? -> A: Auto-normalize entered widths proportionally to total 100% and show a notice.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Build Structured Pages with Rich Layer Types (Priority: P1)
@@ -97,6 +107,7 @@ A creator applies richer color and theme options so both the editor experience a
 
 - **FR-001**: System MUST support layer creation for these types: header, section, text, columns, picture.
 - **FR-002**: System MUST define and enforce allowed nesting rules for each supported layer type.
+- **FR-002a**: System MUST enforce this v1 nesting baseline: root allows only section layers; header layers are allowed only inside section layers.
 - **FR-003**: System MUST assign sensible defaults when each layer type is created.
 - **FR-004**: System MUST support create, rename, reorder, duplicate, and delete operations for all supported layer types.
 - **FR-005**: System MUST show layer type labels and distinct type indicators in the layer tree.
@@ -105,10 +116,14 @@ A creator applies richer color and theme options so both the editor experience a
 - **FR-008**: System MUST provide section-specific inspector fields: container width, padding, margin, background style, border, and corner radius.
 - **FR-009**: System MUST provide text-specific inspector fields: content, font family, font size, font weight, line height, color, and link options.
 - **FR-010**: System MUST provide columns-specific inspector fields: column count, gap, responsive collapse behavior, and per-column width controls.
+- **FR-010a**: System MUST default columns layers to auto-collapse to one column below 768px unless the creator explicitly changes the responsive setting.
+- **FR-010b**: System MUST auto-normalize manual column width values proportionally to a 100% total when entered widths do not sum to 100%, and MUST present a non-blocking notice describing the normalization.
 - **FR-011**: System MUST provide picture-specific inspector fields: image source, alt text, caption, fit mode, focal position, width/height constraints, border, and corner radius.
+- **FR-011a**: System MUST require picture layers to use embedded local export assets with canonical file paths and MUST NOT depend on runtime external image URLs for baseline v1 export fidelity.
 - **FR-012**: System MUST validate inspector inputs and present user-friendly error states and recovery guidance.
 - **FR-013**: System MUST render canvas output using the same structural and style mapping rules used for export generation for supported layer types.
 - **FR-014**: System MUST include parity verification scenarios that compare representative canvas output and exported output.
+- **FR-014a**: System MUST require parity checks to enforce DOM structure equality for supported nodes and allow no more than 1% visual diff tolerance.
 - **FR-015**: System MUST disclose known parity exceptions in user-facing feedback and product documentation.
 - **FR-016**: System MUST define and apply a color token system including at least: surface, panel, accent, muted, success, and warning.
 - **FR-017**: System MUST apply the color token system consistently across layer panel, canvas panel, inspector panel, and status/footer panel.
@@ -132,14 +147,14 @@ A creator applies richer color and theme options so both the editor experience a
 
 - **SC-001**: 95% of first-time creators can build and export a page containing header, section, text, columns, and picture layers within 5 minutes.
 - **SC-002**: 100% of supported layer types display only type-correct inspector controls during validation scenarios.
-- **SC-003**: 95% of predefined parity fixtures pass canvas-to-export visual comparison checks for supported properties.
+- **SC-003**: 95% of predefined parity fixtures pass parity gates requiring DOM structure equality for supported nodes and no more than 1% visual diff.
 - **SC-004**: 100% of theme presets meet defined contrast and focus-visibility accessibility checks for core controls.
 - **SC-005**: In usability testing, at least 90% of users report that the updated interface feels more visually expressive than the prior baseline.
 
 ## Assumptions
 
 - Existing persistence and export workflows remain in scope and are extended rather than replaced.
-- The v1 picture layer supports browser-accessible image sources and metadata editing; advanced media processing is out of scope.
+- The v1 picture layer uses embedded local assets in export with canonical paths; advanced media processing is out of scope.
 - Responsive behavior targets mobile and desktop for core workflows; tablet-specific optimizations can reuse desktop behavior.
 - Color tokens and themes are limited to a curated set for consistency and accessibility in this feature.
 - Visual parity is evaluated for supported layer types and properties; explicitly documented exceptions are acceptable for unsupported combinations.
