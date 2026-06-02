@@ -1,8 +1,20 @@
 import DOMPurify from 'dompurify'
 
+function stripAllHtml(input: string): string {
+  // Remove all HTML by iterating until no more tags remain (handles malformed/nested tags)
+  let result = input
+  let prev = ''
+  while (result !== prev) {
+    prev = result
+    result = result.replace(/<[^>]*>/g, '')
+  }
+  // Remove any stray angle brackets that could be used to reconstruct tags
+  return result.replace(/[<>]/g, '').trim()
+}
+
 export function sanitizeRichText(input: string): string {
   if (typeof window === 'undefined') {
-    return input.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '').trim()
+    return stripAllHtml(input)
   }
   return DOMPurify.sanitize(input, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }).trim()
 }
@@ -25,7 +37,7 @@ export function sanitizeAltText(input: string): string {
 
 export function sanitizeCaption(input: string): string {
   if (typeof window === 'undefined') {
-    return input.replace(/<[^>]*>/g, '').trim()
+    return stripAllHtml(input)
   }
   return DOMPurify.sanitize(input, {
     ALLOWED_TAGS: ['b', 'i', 'em', 'strong'],
