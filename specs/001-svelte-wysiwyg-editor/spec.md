@@ -17,6 +17,7 @@
 - Q: What export naming/versioning strategy should enforce deterministic builds? -> A: Canonical fixed filenames and deterministic ordering.
 - Q: How should autosave behave when localStorage quota is exceeded? -> A: Show persistent storage-full warning, keep editing active, and disable autosave until storage is available.
 - Q: What browser support policy should be used for v1? -> A: Best-effort browser support with no formal target matrix.
+- Q: How should "best-effort browser support" be interpreted operationally in v1? -> A: Core verification runs on latest stable Chrome desktop plus smoke checks on Safari (iOS) and Chrome (Android); unsupported browser bugs are triaged but not guaranteed by SLA.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -74,6 +75,10 @@ A creator uses intuitive controls, keyboard shortcuts, and accessible UI afforda
 - Imported media references are unavailable at export time.
 - Very large projects cause slower rendering or save frequency contention.
 - Local storage quota exceeded during autosave requires non-blocking degraded mode with user-visible recovery actions.
+- Export requested with empty project content returns a guided validation message and no ZIP.
+- Export validation failure after asset generation but before final ZIP delivery preserves editor state and returns actionable diagnostics.
+- Restore detects corrupted persisted data and offers discard, recover last valid snapshot, or start new project.
+- Browser tab close during export may interrupt download; user can retry with the same project state without corruption.
 
 ## Constitution Alignment *(mandatory)*
 
@@ -95,9 +100,14 @@ A creator uses intuitive controls, keyboard shortcuts, and accessible UI afforda
 - **FR-005**: System MUST restore the most recent valid project state from local storage when the application is reopened.
 - **FR-006**: System MUST provide explicit project actions for new project, rename project, duplicate project, snapshot save, and reset.
 - **FR-013**: System MUST maintain a local project registry in local storage that supports multiple projects and one active project identifier for resume and project switching.
+- **FR-021**: System MUST support explicit project switching and MUST update active project context, editor state, and status feedback consistently during the switch.
+- **FR-022**: System MUST define rename and duplicate semantics such that active project pointers, metadata, and snapshot associations remain internally consistent after each action.
 - **FR-007**: System MUST provide ZIP export containing static HTML, CSS, and JavaScript assets representing the current project.
+- **FR-023**: System MUST block export when required project validity checks fail (for example missing required structure) and present actionable user-facing validation messages.
+- **FR-024**: System MUST fail export atomically when pre-download validation fails, leaving project state unchanged and reporting diagnostics.
 - **FR-018**: System MUST detect local storage quota failures, disable further autosave attempts, and present a persistent storage-full warning with recovery guidance.
 - **FR-019**: System MUST keep editing available during storage-full mode and provide user actions to free storage, snapshot/export manually, and re-enable autosave when capacity returns.
+- **FR-025**: System MUST automatically re-enable autosave once a subsequent persistence probe succeeds after user recovery actions.
 - **FR-008**: System MUST ensure exported assets can be opened directly in a browser without additional build or install steps.
 - **FR-009**: System MUST provide undo and redo for recent editing actions.
 - **FR-010**: System MUST provide keyboard-navigable controls with visible focus states and accessible labeling for interactive controls.
@@ -108,6 +118,9 @@ A creator uses intuitive controls, keyboard shortcuts, and accessible UI afforda
 - **FR-016**: System MUST generate exports using canonical fixed filenames and deterministic file ordering for equivalent project states.
 - **FR-017**: System MUST produce each ZIP as a clean canonical file set without embedding prior exports or timestamp-derived file naming.
 - **FR-020**: System MUST document browser support as best-effort for modern browsers in v1 and MUST NOT claim a formal guaranteed browser compatibility matrix.
+- **FR-026**: System MUST provide deterministic equivalence checks based on canonical manifest entry order, fixed filenames, and hash-stable asset contents for unchanged project state.
+- **FR-027**: System MUST define fallback behavior for unresolved imported media during export (placeholder or explicit omission notice) and report affected assets.
+- **FR-028**: System MUST preserve accessibility for keyboard-only users across canvas, layer tree, and inspector interactions with visible focus and labeled controls.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -124,17 +137,24 @@ A creator uses intuitive controls, keyboard shortcuts, and accessible UI afforda
 
 ### Measurable Outcomes
 
-- **SC-001**: At least 95% of editing changes made before refresh are restored successfully in normal browser conditions.
+- **SC-001**: At least 95% of editing changes made before refresh are restored successfully under defined normal browser conditions (single active editing tab, no private/incognito mode, storage not externally cleared during session).
 - **SC-002**: First meaningful editor render occurs in under 2 seconds on a typical laptop-class device.
-- **SC-003**: At least 90% of first-time users complete add element, style element, and export tasks within 3 minutes.
-- **SC-004**: 100% of successful exports produce a ZIP that opens in a browser as static files without runtime dependency errors.
+- **SC-003**: At least 90% of first-time users complete add element, style element, and export tasks within 3 minutes, measured from first editable canvas render to successful exported ZIP download completion.
+- **SC-004**: 100% of successful exports produce a ZIP that opens in a browser as static files without runtime dependency errors, where pass/fail is determined by automated smoke load of exported HTML and absence of uncaught runtime exceptions.
 - **SC-005**: In usability checks, keyboard-only users can complete core editing and export workflows without blocked actions.
+
+## Operational Definitions
+
+- **Best-Effort Browser Support (v1)**: Core quality gates run on latest stable Chrome desktop. Smoke verification also runs on latest stable Safari iOS and Chrome Android for critical flows. Issues in other browsers are triaged without compatibility SLA.
+- **Deterministic Export Equivalence**: Two exports from unchanged project state are equivalent when canonical filenames match, manifest entry order is identical, and generated asset content hashes match.
+- **Modern Responsive Interface**: UI remains usable from 360px mobile width through desktop widths with no hidden critical controls for core tasks.
 
 ## Assumptions
 
 - Target users are creators building brochure-style and landing-page style static websites.
 - Project data is stored locally in the browser for this feature scope; cloud sync is out of scope.
 - Imported assets used in the editor are either embedded or resolved in a way that remains valid in exported output.
-- Mobile phone authoring is not a primary workflow for v1, but desktop and tablet layouts are in scope.
+- Mobile phone authoring is supported for core workflows on a best-effort basis, though desktop and tablet remain primary productivity targets for v1.
 - Local storage availability and normal browser quota conditions are assumed for persistence metrics.
 - Browser support is best-effort for modern browsers in v1 without a guaranteed compatibility matrix.
+- Browser APIs required for v1 include localStorage, Blob/File download handling, and ZIP generation primitives through vetted client-side libraries.

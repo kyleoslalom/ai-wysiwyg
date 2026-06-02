@@ -125,6 +125,8 @@
 - [ ] T045 Add startup performance smoke test for render budget in tests/integration/startup-performance.spec.ts
 - [ ] T046 Add documentation for architecture and data flow in docs/editor-architecture.md
 - [ ] T047 Record quickstart validation outcomes and troubleshooting notes in specs/001-svelte-wysiwyg-editor/quickstart.md
+- [ ] T048 Add browser-support policy documentation and verification notes in docs/browser-support.md
+- [ ] T049 Add usability validation protocol for SC-003 timing metric in docs/usability-validation.md
 
 ---
 
