@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-wysiwyg.local/contracts/export-manifest.schema.json",
+  "title": "ExportManifest",
+  "type": "object",
+  "required": ["formatVersion", "projectId", "generatedAt", "entries"],
+  "properties": {
+    "formatVersion": { "type": "string", "minLength": 1 },
+    "projectId": { "type": "string", "minLength": 1 },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "entries": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "prefixItems": [
+        {
+          "type": "object",
+          "required": ["path", "type"],
+          "properties": {
+            "path": { "const": "index.html" },
+            "type": { "const": "text/html" }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": ["path", "type"],
+          "properties": {
+            "path": { "const": "assets/styles.css" },
+            "type": { "const": "text/css" }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": ["path", "type"],
+          "properties": {
+            "path": { "const": "assets/app.js" },
+            "type": { "const": "text/javascript" }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": ["path", "type"],
+          "properties": {
+            "path": { "const": "manifest.json" },
+            "type": { "const": "application/json" }
+          },
+          "additionalProperties": true
+        }
+      ],
+      "items": false
+    },
+    "hashes": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}

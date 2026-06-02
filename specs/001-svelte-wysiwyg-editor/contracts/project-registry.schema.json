@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-wysiwyg.local/contracts/project-registry.schema.json",
+  "title": "ProjectRegistry",
+  "type": "object",
+  "required": ["activeProjectId", "projects", "schemaVersion"],
+  "properties": {
+    "activeProjectId": {
+      "type": ["string", "null"],
+      "minLength": 1
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "lastOpenedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "projects": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["id", "name", "createdAt", "updatedAt", "version"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" },
+          "version": { "type": "integer", "minimum": 1 }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}
