@@ -12,12 +12,12 @@
 
 **Purpose**: Initialize the client-side Svelte project, toolchain, and baseline structure.
 
-- [ ] T001 Initialize Svelte + Vite + TypeScript project scaffold in package.json
-- [ ] T002 Install minimal runtime and test dependencies in package.json
-- [ ] T003 [P] Create baseline source folders for editor modules in src/lib/
-- [ ] T004 [P] Configure Vitest and Testing Library setup in vitest.config.ts
-- [ ] T005 [P] Configure Playwright end-to-end test runner in playwright.config.ts
-- [ ] T006 Add npm scripts for dev, build, test, and e2e flows in package.json
+- [x] T001 Initialize Svelte + Vite + TypeScript project scaffold in package.json
+- [x] T002 Install minimal runtime and test dependencies in package.json
+- [x] T003 [P] Create baseline source folders for editor modules in src/lib/
+- [x] T004 [P] Configure Vitest and Testing Library setup in vitest.config.ts
+- [x] T005 [P] Configure Playwright end-to-end test runner in playwright.config.ts
+- [x] T006 Add npm scripts for dev, build, test, and e2e flows in package.json
 
 ---
 
@@ -27,15 +27,15 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T007 Implement core editor domain types in src/lib/domain/types.ts
-- [ ] T008 [P] Implement Project Registry schema validator in src/lib/domain/schemas/project-registry.ts
-- [ ] T009 [P] Implement Export Manifest schema validator in src/lib/domain/schemas/export-manifest.ts
-- [ ] T010 [P] Implement localStorage gateway service in src/lib/services/persistence/local-storage.ts
-- [ ] T011 Implement project registry store with active project pointer in src/lib/stores/projects.ts
-- [ ] T012 Implement global editor state store foundation in src/lib/stores/editor.ts
-- [ ] T013 [P] Implement input sanitization and style validation service in src/lib/services/validator/sanitizer.ts
-- [ ] T014 Implement app shell layout container for canvas/layers/inspector in src/lib/components/shell/EditorShell.svelte
-- [ ] T015 [P] Implement operation status store for non-blocking feedback in src/lib/stores/status.ts
+- [x] T007 Implement core editor domain types in src/lib/domain/types.ts
+- [x] T008 [P] Implement Project Registry schema validator in src/lib/domain/schemas/project-registry.ts
+- [x] T009 [P] Implement Export Manifest schema validator in src/lib/domain/schemas/export-manifest.ts
+- [x] T010 [P] Implement localStorage gateway service in src/lib/services/persistence/local-storage.ts
+- [x] T011 Implement project registry store with active project pointer in src/lib/stores/projects.ts
+- [x] T012 Implement global editor state store foundation in src/lib/stores/editor.ts
+- [x] T013 [P] Implement input sanitization and style validation service in src/lib/services/validator/sanitizer.ts
+- [x] T014 Implement app shell layout container for canvas/layers/inspector in src/lib/components/shell/EditorShell.svelte
+- [x] T015 [P] Implement operation status store for non-blocking feedback in src/lib/stores/status.ts
 
 **Checkpoint**: Foundation ready - user story implementation can begin.
 
