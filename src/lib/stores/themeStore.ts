@@ -30,6 +30,20 @@ export const activeThemeTokensStore = derived(activeThemeStore, ($theme) => $the
 
 export const availableThemesStore = writable<ThemeTokenSet[]>(THEME_PRESETS)
 
+const CANVAS_TOKEN_KEYS = ['canvas-bg', 'canvas-text', 'surface', 'panel', 'muted', 'accent', 'text', 'textMuted', 'border', 'focus'] as const
+
+const SAFE_FALLBACKS: Record<string, string> = {
+  'canvas-bg': '#ffffff',
+  'canvas-text': '#1f2937',
+  surface: '#ffffff',
+  panel: '#f9fafb',
+  muted: '#9ca3af',
+  accent: '#2563eb',
+  text: '#1f2937',
+  border: '#d1d5db',
+  focus: '#3b82f6',
+}
+
 export function selectTheme(themeId: string): void {
   const theme = getThemeById(themeId)
   if (!theme) return
@@ -40,7 +54,16 @@ export function selectTheme(themeId: string): void {
 export function applyThemeToDom(tokens: Record<string, string>): void {
   if (typeof document === 'undefined') return
   const root = document.documentElement
+  // Apply all defined tokens
   for (const [key, value] of Object.entries(tokens)) {
     root.style.setProperty(`--color-${key}`, value)
+  }
+  // Apply fallbacks for any missing canvas-relevant tokens
+  for (const key of CANVAS_TOKEN_KEYS) {
+    const cssVar = `--color-${key}`
+    if (!root.style.getPropertyValue(cssVar) && SAFE_FALLBACKS[key]) {
+      root.style.setProperty(cssVar, SAFE_FALLBACKS[key])
+      console.warn(`[themeStore] Token "${key}" missing in active theme; using fallback "${SAFE_FALLBACKS[key]}"`)
+    }
   }
 }

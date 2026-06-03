@@ -87,7 +87,22 @@
   }
 </script>
 
-<aside class="layers-panel" aria-label="Layer tree">
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+<aside
+  class="layers-panel"
+  aria-label="Layer tree"
+  role="region"
+  tabindex="-1"
+  onkeydown={(e) => {
+    if (e.altKey && e.key === 'ArrowUp' && selectedNodeId) {
+      e.preventDefault()
+      handleMoveUp(selectedNodeId)
+    } else if (e.altKey && e.key === 'ArrowDown' && selectedNodeId) {
+      e.preventDefault()
+      handleMoveDown(selectedNodeId)
+    }
+  }}
+>
   <h2>Layers</h2>
   <ul class="layer-list" role="tree">
     {#each project.nodes[project.rootNodeId]?.children ?? [] as sectionId}

@@ -1,12 +1,18 @@
 <script lang="ts">
+  import { onMount, onDestroy } from 'svelte'
+  import { get } from 'svelte/store'
   import type { RichProject } from '../../domain/schemas/projectSchema'
-  import type { RenderModel } from '../../services/editor/renderModel'
+  import type { RenderModel, RenderNode } from '../../services/editor/renderModel'
   import { buildRenderModel } from '../../services/editor/renderModel'
-  import type { RenderNode } from '../../services/editor/renderModel'
+  import { reorderLayer, moveLayer } from '../../services/editor/layerOperations'
+  import { dragStateStore, completeDrag, cancelDrag, resetDragState } from '../../stores/dragState'
+  import CanvasElementRenderer from './CanvasElementRenderer.svelte'
+  import DropIndicator from './DropIndicator.svelte'
 
   export let project: RichProject
   export let selectedNodeId: string | null
   export let onSelect: (id: string) => void
+  export let onProjectChange: ((project: RichProject) => void) | undefined = undefined
 
   $: renderModel = (() => {
     try {
@@ -16,112 +22,116 @@
     }
   })()
 
-  function getNodeStyle(node: RenderNode): string {
-    const parts: string[] = []
-    if (node.style.textColor) parts.push(`color: ${node.style.textColor}`)
-    const spacing = node.style.spacing
-    if (spacing['padding']) parts.push(`padding: ${spacing['padding']}`)
-    if (spacing['margin']) parts.push(`margin: ${spacing['margin']}`)
-    return parts.join('; ')
+  let canvasEl: HTMLElement
+
+  function handleKeyDown(e: KeyboardEvent): void {
+    if (e.key === 'Escape') {
+      const dragState = get(dragStateStore)
+      if (dragState.phase === 'DRAGGING') {
+        cancelDrag()
+        resetDragState()
+      }
+    }
+  }
+
+  onMount(() => {
+    document.addEventListener('keydown', handleKeyDown)
+  })
+
+  onDestroy(() => {
+    document.removeEventListener('keydown', handleKeyDown)
+  })
+
+  function handleDrop(e: DragEvent): void {
+    e.preventDefault()
+    const dt = e.dataTransfer
+    if (!dt) return
+
+    const dragState = get(dragStateStore)
+    if (!dragState || dragState.phase !== 'DRAGGING' || !dragState.draggedNodeId) {
+      resetDragState()
+      return
+    }
+
+    if (dragState.isCancelled || !dragState.isValidTarget || !dragState.currentTargetParentId || dragState.currentDropIndex === null) {
+      cancelDrag()
+      return
+    }
+
+    const draggedNodeId = dragState.draggedNodeId
+    const sourceParentId = dragState.sourceParentId!
+    const targetParentId = dragState.currentTargetParentId
+    const targetIndex = dragState.currentDropIndex
+
+    if (sourceParentId === targetParentId) {
+      // Same-parent reorder
+      const result = reorderLayer(project, sourceParentId, draggedNodeId, targetIndex)
+      if (!result.error && onProjectChange) {
+        completeDrag()
+        onProjectChange(result.project)
+      }
+    } else {
+      // Cross-parent move
+      const result = moveLayer(project, draggedNodeId, targetParentId, targetIndex)
+      if (!result.error && onProjectChange) {
+        completeDrag()
+        onProjectChange(result.project)
+      }
+    }
+
+    resetDragState()
+  }
+
+  function handleDragOver(e: DragEvent): void {
+    e.preventDefault()
+    if (!e.dataTransfer) return
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  function handleDragLeave(e: DragEvent): void {
+    const rect = (e.currentTarget as HTMLElement)?.getBoundingClientRect()
+    if (!rect) return
+    const { clientX, clientY } = e
+    if (
+      clientX <= rect.left || clientX >= rect.right ||
+      clientY <= rect.top || clientY >= rect.bottom
+    ) {
+      // Left the canvas area
+    }
   }
 </script>
 
-<section class="canvas-surface" aria-label="Visual editor canvas">
-  <h2>Canvas</h2>
-  <div class="canvas-frame" data-testid="canvas-frame">
+<section
+  class="canvas-surface"
+  aria-label="Visual editor canvas"
+  ondrop={handleDrop}
+  ondragover={handleDragOver}
+  ondragleave={handleDragLeave}
+>
+  <DropIndicator />
+  <div class="canvas-frame-inner">
     {#if renderModel}
-      {#each renderModel.tree.children as sectionNode}
+      {#each renderModel.tree.children as sectionNode, sectionIdx}
         {#if sectionNode.visible}
-          <section
-            class="canvas-section"
-            class:selected={selectedNodeId === sectionNode.id}
-            data-node-id={sectionNode.id}
-            data-testid={`canvas-node-${sectionNode.id}`}
-            style={getNodeStyle(sectionNode)}
-            role="group"
-            aria-labelledby={`section-select-${sectionNode.id}`}
+          <CanvasElementRenderer
+            node={sectionNode}
+            isSelected={selectedNodeId === sectionNode.id}
+            onSelect={onSelect}
+            parentId={renderModel.tree.id}
+            siblingIndex={sectionIdx}
           >
-            <button
-              type="button"
-              id={`section-select-${sectionNode.id}`}
-              class="section-select"
-              class:selected={selectedNodeId === sectionNode.id}
-              onclick={() => onSelect(sectionNode.id)}
-            >
-              Section: {sectionNode.id}
-            </button>
-            {#each sectionNode.children as childNode}
+            {#each sectionNode.children as childNode, childIdx}
               {#if childNode.visible}
-                {#if childNode.type === 'header'}
-                  {@const hp = childNode.props as { level: string; text: string }}
-                  <button
-                    type="button"
-                    class="canvas-node canvas-header"
-                    class:selected={selectedNodeId === childNode.id}
-                    data-node-id={childNode.id}
-                    data-testid={`canvas-node-${childNode.id}`}
-                    style={getNodeStyle(childNode)}
-                    onclick={(e) => { e.stopPropagation(); onSelect(childNode.id); }}
-                  >
-                    <svelte:element this={hp.level} class="header-inner">{hp.text || 'Heading'}</svelte:element>
-                  </button>
-                {:else if childNode.type === 'text'}
-                  {@const tp = childNode.props as { content: string; href?: string }}
-                  <button
-                    type="button"
-                    class="canvas-node canvas-text"
-                    class:selected={selectedNodeId === childNode.id}
-                    data-node-id={childNode.id}
-                    data-testid={`canvas-node-${childNode.id}`}
-                    style={getNodeStyle(childNode)}
-                    onclick={(e) => { e.stopPropagation(); onSelect(childNode.id); }}
-                  >
-                    {tp.content || 'Text'}
-                  </button>
-                {:else if childNode.type === 'columns'}
-                  {@const cp = childNode.props as { columnCount: number; gap: string }}
-                  <button
-                    type="button"
-                    class="canvas-node canvas-columns"
-                    class:selected={selectedNodeId === childNode.id}
-                    data-node-id={childNode.id}
-                    data-testid={`canvas-node-${childNode.id}`}
-                    style="display: grid; grid-template-columns: repeat({cp.columnCount}, 1fr); gap: {cp.gap}; {getNodeStyle(childNode)}"
-                    onclick={(e) => { e.stopPropagation(); onSelect(childNode.id); }}
-                    aria-label={`${cp.columnCount}-column layout`}
-                  >
-                    {#each { length: cp.columnCount } as _, i}
-                      <div class="column-placeholder" aria-label={`Column ${i + 1}`}>Col {i + 1}</div>
-                    {/each}
-                  </button>
-                {:else if childNode.type === 'picture'}
-                  {@const pp = childNode.props as { src: string; alt: string; caption?: string }}
-                  <figure
-                    class="canvas-node canvas-picture"
-                    class:selected={selectedNodeId === childNode.id}
-                    data-node-id={childNode.id}
-                    data-testid={`canvas-node-${childNode.id}`}
-                  >
-                    <button
-                      type="button"
-                      class="picture-select"
-                      aria-label={pp.alt || 'Picture'}
-                      onclick={(e) => { e.stopPropagation(); onSelect(childNode.id); }}
-                    >
-                      {#if pp.src}
-                        <img src={pp.src} alt={pp.alt} class="canvas-img" />
-                      {:else}
-                        <div class="picture-placeholder" aria-label="Picture placeholder">🖼 {pp.alt || 'Picture'}</div>
-                      {/if}
-                    </button>
-                    {#if pp.caption}
-                      <figcaption class="picture-caption">{pp.caption}</figcaption>
-                    {/if}
-                  </figure>
-                {/if}
+                <CanvasElementRenderer
+                  node={childNode}
+                  isSelected={selectedNodeId === childNode.id}
+                  onSelect={onSelect}
+                  parentId={sectionNode.id}
+                  siblingIndex={childIdx}
+                />
               {/if}
             {/each}
-          </section>
+          </CanvasElementRenderer>
         {/if}
       {/each}
     {:else}
@@ -136,130 +146,25 @@
     flex-direction: column;
     gap: 0.5rem;
     height: 100%;
+    background: var(--canvas-bg, #ffffff);
+    color: var(--canvas-text, #1f2937);
   }
 
-  .canvas-frame {
+  .canvas-frame-inner {
     min-height: 16rem;
-    border: 1px dashed #9ca3af;
-    border-radius: 0.75rem;
-    background: #ffffff;
+    border: 1px dashed var(--color-muted, #9ca3af);
+    border-radius: 0.5rem;
+    background: var(--surface-bg, #ffffff);
     padding: 0.75rem;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    overflow-y: auto;
-  }
-
-  .canvas-section {
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    background: #f9fafb;
-    cursor: pointer;
-  }
-
-  .section-select {
-    align-self: flex-start;
-    border: 1px solid #cbd5e1;
-    border-radius: 999px;
-    background: #ffffff;
-    color: #475569;
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.25rem 0.6rem;
-  }
-
-  .section-select.selected {
-    border-color: #2563eb;
-    color: #1d4ed8;
-  }
-
-  .canvas-section.selected {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 2px #bfdbfe;
-  }
-
-  .canvas-node {
-    text-align: left;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    width: 100%;
-    cursor: pointer;
-  }
-
-  .canvas-node.selected {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 2px #bfdbfe;
-  }
-
-  .canvas-header {
-    font-weight: 600;
-  }
-
-  .header-inner {
-    margin: 0;
-    font-size: inherit;
-  }
-
-  .canvas-columns {
-    padding: 0.5rem;
-  }
-
-  .column-placeholder {
-    min-height: 2rem;
-    border: 1px dashed #d1d5db;
-    border-radius: 0.35rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #9ca3af;
-    font-size: 0.8rem;
-  }
-
-  .canvas-picture {
-    padding: 0.4rem;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.35rem;
-  }
-
-  .picture-select {
-    width: 100%;
-    border: none;
-    background: transparent;
-    padding: 0;
-    text-align: left;
-    cursor: pointer;
-  }
-
-  .canvas-img {
-    max-width: 100%;
-    max-height: 12rem;
-    object-fit: contain;
-    border-radius: 0.4rem;
-  }
-
-  .picture-placeholder {
-    color: #9ca3af;
-    font-size: 0.85rem;
-    padding: 0.5rem;
-  }
-
-  .picture-caption {
-    font-size: 0.8rem;
-    color: #6b7280;
-    font-style: italic;
   }
 
   .empty-canvas {
-    color: #9ca3af;
+    color: var(--color-muted, #9ca3af);
     text-align: center;
     margin: auto;
+    font-style: italic;
   }
 </style>

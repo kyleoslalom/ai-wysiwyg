@@ -35,6 +35,8 @@
   let activePanel = 'layers'
   let unregisterShortcuts: (() => void) | null = null
   let mounted = false
+  let leftPanelCollapsed = false
+  let rightPanelCollapsed = false
 
   $: activeTheme = $activeThemeStore
   $: statuses = $operationStatusStore
@@ -204,7 +206,8 @@
 
   <main class="workspace">
     <div
-      class="panel"
+      class="panel panel-left"
+      class:panel-collapsed={leftPanelCollapsed}
       tabindex="-1"
       data-editor-panel
       data-panel-focusable="true"
@@ -214,7 +217,15 @@
         activePanel = 'layers'
       }}
     >
-      <LayersPanel {project} {selectedNodeId} onSelect={selectNode} onProjectChange={handleProjectChange} />
+      {#if !leftPanelCollapsed}
+        <LayersPanel {project} {selectedNodeId} onSelect={selectNode} onProjectChange={handleProjectChange} />
+      {:else}
+        <div class="panel-icon-bar" aria-label="Layers panel collapsed">
+          <button type="button" class="panel-toggle-btn" onclick={() => { leftPanelCollapsed = false }} title="Expand layers panel">
+            ☰
+          </button>
+        </div>
+      {/if}
     </div>
 
     <div
@@ -224,15 +235,19 @@
       data-panel-focusable="true"
       data-panel-id="canvas"
       data-testid="panel-canvas"
+      data-test-canvas-container
       onfocus={() => {
         activePanel = 'canvas'
       }}
     >
-      <CanvasSurface {project} {selectedNodeId} onSelect={selectNode} />
+      <div class="canvas-frame" data-testid="canvas-frame">
+        <CanvasSurface {project} {selectedNodeId} onSelect={selectNode} onProjectChange={handleProjectChange} />
+      </div>
     </div>
 
     <div
-      class="panel"
+      class="panel panel-right"
+      class:panel-collapsed={rightPanelCollapsed}
       tabindex="-1"
       data-editor-panel
       data-panel-focusable="true"
@@ -242,7 +257,15 @@
         activePanel = 'inspector'
       }}
     >
-      <InspectorPanel {selectedNode} onNodeChange={handleNodeChange} />
+      {#if !rightPanelCollapsed}
+        <InspectorPanel {selectedNode} onNodeChange={handleNodeChange} />
+      {:else}
+        <div class="panel-icon-bar" aria-label="Inspector panel collapsed">
+          <button type="button" class="panel-toggle-btn" onclick={() => { rightPanelCollapsed = false }} title="Expand inspector panel">
+            ☰
+          </button>
+        </div>
+      {/if}
     </div>
   </main>
 
@@ -268,17 +291,92 @@
 
   .workspace {
     display: grid;
-    gap: 1rem;
-    grid-template-columns: minmax(12rem, 18rem) 1fr minmax(12rem, 18rem);
-    padding: 1rem;
+    gap: 0;
+    grid-template-columns: var(--panel-width, 280px) 1fr var(--panel-width, 280px);
+    padding: 0;
+    overflow: hidden;
+    height: 100%;
   }
 
-  .panel,
-  .canvas {
+  .panel {
     border: 1px solid #d1d5db;
-    border-radius: 0.75rem;
+    border-radius: 0;
     padding: 0.75rem;
-    background: #fff;
+    overflow-y: auto;
+    background: var(--color-surface, #ffffff);
+    transition: width 0.2s ease;
+    min-width: 0;
+  }
+
+  .panel-left {
+    border-right: 1px solid #d1d5db;
+  }
+
+  .panel-right {
+    border-left: 1px solid #d1d5db;
+  }
+
+  .panel-collapsed {
+    width: 48px;
+    min-width: 48px;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .panel-icon-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem 0;
+    gap: 0.5rem;
+  }
+
+  .panel-toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.25rem;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    color: var(--color-text, #1f2937);
+  }
+
+  .panel-toggle-btn:hover {
+    background: var(--color-accent-bg, rgba(170, 59, 255, 0.1));
+  }
+
+  /* Responsive: at <1024px panels collapse to icon-only by default */
+  @media (max-width: 1023px) {
+    .workspace {
+      grid-template-columns: 48px 1fr 48px;
+    }
+    .panel :not(.panel-icon-bar) {
+      display: none;
+    }
+  }
+
+  /* Responsive: at <768px only one panel visible at a time via toggle */
+  @media (max-width: 767px) {
+    .workspace {
+      grid-template-columns: 0px 1fr 0px;
+    }
+  }
+
+  .canvas {
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--canvas-bg, #f9fafb);
+    overflow: hidden;
+  }
+
+  .canvas-frame {
+    flex: 1;
+    height: 100%;
+    overflow: auto;
+    padding: 1rem;
   }
 
   .status {
@@ -288,11 +386,5 @@
     padding: 0.75rem 1rem;
     border-top: 1px solid #d1d5db;
     background: #ffffffcc;
-  }
-
-  @media (max-width: 920px) {
-    .workspace {
-      grid-template-columns: 1fr;
-    }
   }
 </style>

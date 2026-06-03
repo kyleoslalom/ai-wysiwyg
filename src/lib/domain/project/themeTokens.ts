@@ -16,7 +16,7 @@ export const THEME_PRESETS: ThemeTokenSet[] = [
       surface: '#ffffff',
       panel: '#f9fafb',
       accent: '#2563eb',
-      muted: '#6b7280',
+      muted: '#9ca3af',
       success: '#16a34a',
       warning: '#d97706',
       error: '#dc2626',
@@ -24,6 +24,8 @@ export const THEME_PRESETS: ThemeTokenSet[] = [
       textMuted: '#6b7280',
       border: '#d1d5db',
       focus: '#3b82f6',
+      'canvas-bg': '#ffffff',
+      'canvas-text': '#1f2937',
     },
   },
   {
@@ -41,6 +43,8 @@ export const THEME_PRESETS: ThemeTokenSet[] = [
       textMuted: '#9ca3af',
       border: '#374151',
       focus: '#60a5fa',
+      'canvas-bg': '#1f2937',
+      'canvas-text': '#f9fafb',
     },
   },
   {
@@ -58,6 +62,8 @@ export const THEME_PRESETS: ThemeTokenSet[] = [
       textMuted: '#78716c',
       border: '#d6d3d1',
       focus: '#f97316',
+      'canvas-bg': '#fffbf5',
+      'canvas-text': '#1c1917',
     },
   },
   {
@@ -75,6 +81,8 @@ export const THEME_PRESETS: ThemeTokenSet[] = [
       textMuted: '#64748b',
       border: '#bae6fd',
       focus: '#0ea5e9',
+      'canvas-bg': '#f0f9ff',
+      'canvas-text': '#0c4a6e',
     },
   },
 ]
