@@ -42,6 +42,10 @@
     if (!dt) return
     dt.effectAllowed = 'move'
     dt.setData('text/plain', node.id)
+    // Set a custom drag image that's subtle
+    if (dt.setDragImage && e.currentTarget instanceof HTMLElement) {
+      dt.setDragImage(e.currentTarget, 0, 0)
+    }
     startDrag(node.id, parentId, siblingIndex)
   }
 
@@ -49,13 +53,21 @@
     e.preventDefault()
     if (!e.dataTransfer) return
     e.dataTransfer.dropEffect = 'move'
-    // The main drop target logic is handled by CanvasSurface
+
+    // Determine insertion index: above or below this element based on cursor Y
+    const el = e.currentTarget as HTMLElement
+    const rect = el.getBoundingClientRect()
+    const midY = rect.top + rect.height / 2
+    const insertionIndex = e.clientY < midY ? siblingIndex : siblingIndex + 1
+
+    if (parentId) {
+      updateDragPosition(parentId, insertionIndex, true)
+    }
   }
 
   function handleDragEnter(e: DragEvent): void {
     e.preventDefault()
     dragCounter++
-    // Signal to CanvasSurface that we're over this element
   }
 
   function handleDragLeave(e: DragEvent): void {

@@ -47,31 +47,56 @@
     const dt = e.dataTransfer
     if (!dt) return
 
+    const droppedNodeId = dt.getData('text/plain')
+
     const dragState = get(dragStateStore)
     if (!dragState || dragState.phase !== 'DRAGGING' || !dragState.draggedNodeId) {
       resetDragState()
       return
     }
 
-    if (dragState.isCancelled || !dragState.isValidTarget || !dragState.currentTargetParentId || dragState.currentDropIndex === null) {
+    // Determine target parent from drag state or walk up from drop target
+    let targetParentId = dragState.currentTargetParentId
+    let targetIndex = dragState.currentDropIndex
+
+    // If the drop was on the canvas surface itself (not over a specific element),
+    // walk up the DOM to find the nearest container
+    if (!targetParentId || targetIndex === null) {
+      const dropEl = e.target as HTMLElement
+      const containerEl = dropEl?.closest('[data-node-id]') ?? null
+      if (containerEl) {
+        targetParentId = containerEl.getAttribute('data-node-id')
+        targetIndex = 0
+      } else if (renderModel) {
+        // Drop on empty canvas area — use root as parent, append at end
+        targetParentId = renderModel.tree.id
+        const rootChildren = renderModel.tree.children.filter((c) => c.visible)
+        targetIndex = rootChildren.length
+      }
+    }
+
+    if (!targetParentId || targetIndex === null) {
       cancelDrag()
+      resetDragState()
+      return
+    }
+
+    if (dragState.isCancelled || !dragState.isValidTarget) {
+      cancelDrag()
+      resetDragState()
       return
     }
 
     const draggedNodeId = dragState.draggedNodeId
     const sourceParentId = dragState.sourceParentId!
-    const targetParentId = dragState.currentTargetParentId
-    const targetIndex = dragState.currentDropIndex
 
     if (sourceParentId === targetParentId) {
-      // Same-parent reorder
       const result = reorderLayer(project, sourceParentId, draggedNodeId, targetIndex)
       if (!result.error && onProjectChange) {
         completeDrag()
         onProjectChange(result.project)
       }
     } else {
-      // Cross-parent move
       const result = moveLayer(project, draggedNodeId, targetParentId, targetIndex)
       if (!result.error && onProjectChange) {
         completeDrag()
