@@ -166,6 +166,20 @@ Examples of foundational tasks (adjust based on your project):
 
 ---
 
+## Phase N+1: Visual Verification (Constitution-Required)
+
+**Purpose**: Confirm specification requirements are captured in the UI before marking the feature complete.
+
+**⚠️ REQUIRED**: This phase MUST be completed for every feature. Do not skip.
+
+- [ ] TXXX Launch the application (e.g., `npm run dev` or equivalent)
+- [ ] TXXX Capture screenshots of all UI areas modified or introduced by this feature
+- [ ] TXXX Verify each screenshot against the corresponding acceptance criteria in spec.md
+- [ ] TXXX Document any discrepancies found and resolve or escalate before marking tasks done
+- [ ] TXXX Attach or reference screenshot evidence in the task completion record
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

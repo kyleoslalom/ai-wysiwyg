@@ -1,26 +1,18 @@
 <!--
 Sync Impact Report
-Version change: template-placeholder -> 1.0.0
+Version change: 1.0.0 -> 1.1.0
 Modified principles:
-- template principle 1 -> I. Visual Truth First
-- template principle 2 -> II. Export Is the Product
-- template principle 3 -> III. Standards Over Lock-In
-- template principle 4 -> IV. Human-Readable Output
-- template principle 5 -> V. Safe by Default
-Added principles:
-- VI. Deterministic Builds
-- VII. Progressive Capability
-- VIII. Browser-Native Experience
+- None
 Added sections:
-- Non-Negotiable Outcomes
-- Definition of Done for Major Features
+- Definition of Done: mandatory post-implementation visual verification step (launch app,
+  screenshot, confirm spec-to-UI match)
+- Governance compliance: visual verification expectation added
 Removed sections:
 - None
 Templates requiring updates:
-- ✅ .specify/templates/plan-template.md
-- ✅ .specify/templates/spec-template.md
-- ✅ .specify/templates/tasks-template.md
-- ⚠ pending: .specify/templates/commands/*.md (directory does not exist in this repository)
+- ✅ .specify/templates/plan-template.md (Constitution Check: visual verification gate)
+- ✅ .specify/templates/tasks-template.md (final phase: screenshot verification task)
+- ✅ .specify/templates/spec-template.md (no change needed)
 Follow-up TODOs:
 - None
 -->
@@ -83,6 +75,10 @@ mobile browsers. Feature design MUST preserve usability for keyboard, pointer, a
 - Regression tests MUST cover rendering parity and export integrity.
 - Security and accessibility checks MUST pass for affected workflows.
 - Documentation MUST explain user-visible behavior and export impact.
+- After implementation, the implementing agent MUST launch the application, capture a screenshot
+	of all affected UI areas, and confirm that the rendered interface matches the feature
+	specification's stated visual and functional requirements. Screenshot evidence MUST be
+	referenced or attached in the task completion record before a feature is considered done.
 
 ## Governance
 
@@ -99,7 +95,10 @@ Compliance review expectations:
 - Every plan MUST complete a constitution check before research and after design.
 - Every feature spec MUST document visual/export parity requirements and measurable outcomes.
 - Every task list MUST include validation work for export integrity, accessibility, and security.
+- After feature implementation, the implementing agent MUST perform a visual verification pass:
+	launch the application, capture a screenshot of all specification-driven UI areas, and
+	confirm the screenshot matches specified behavior before marking the feature complete.
 - Pull requests that violate constitutional requirements MUST include a documented exception and
 	mitigation plan or be rejected.
 
-**Version**: 1.0.0 | **Ratified**: 2026-06-02 | **Last Amended**: 2026-06-02
+**Version**: 1.1.0 | **Ratified**: 2026-06-02 | **Last Amended**: 2026-06-03

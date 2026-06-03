@@ -48,6 +48,7 @@
 - Determinism strategy: plan explains how reproducible exports are ensured for identical project state.
 - Accessibility and performance baseline: plan includes baseline checks for keyboard/touch usability and responsive operation.
 - Testing obligations: plan includes regression validation for rendering parity and export integrity.
+- Visual verification: plan confirms that after implementation the agent will launch the application, screenshot affected UI, and verify it matches the spec before marking the feature complete.
 
 ## Project Structure
 
