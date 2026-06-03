@@ -168,9 +168,7 @@
   }
 
   input[type='text'],
-  input[type='color'],
-  input[type='number'],
-  input[type='url'] {
+  input[type='color'] {
     border: 1px solid #d1d5db;
     border-radius: 0.4rem;
     padding: 0.45rem 0.6rem;

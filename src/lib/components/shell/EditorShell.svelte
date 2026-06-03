@@ -1,105 +1,68 @@
 <script lang="ts">
-  import { onDestroy, onMount } from 'svelte'
-  import type { Project } from '../../domain/types'
-  import { updateElementContent, updateElementInlineStyle } from '../../domain/project/canvas-element'
-  import { createSampleProject } from '../../domain/project/sample-project'
-  import CanvasViewport from '../canvas/CanvasViewport.svelte'
-  import LayersTree from '../layers/LayersTree.svelte'
-  import PropertiesPanel from '../inspector/PropertiesPanel.svelte'
+  import { onMount } from 'svelte'
+  import type { LayerNode } from '../../domain/schemas/layerNodeSchema'
+  import type { RichProject } from '../../domain/schemas/projectSchema'
+  import { createRichSampleProject } from '../../domain/project/rich-sample-project'
+  import CanvasSurface from '../canvas/CanvasSurface.svelte'
+  import InspectorPanel from '../inspector/InspectorPanel.svelte'
+  import LayersPanel from '../layers/LayersPanel.svelte'
+  import { exportRichProjectZip } from '../../services/export/richExporter'
+  import { activeThemeStore, applyThemeToDom } from '../../stores/themeStore'
+  import Toolbar from './Toolbar.svelte'
   import TopBar from './TopBar.svelte'
-  import StorageStatusBanner from './StorageStatusBanner.svelte'
-  import OperationStatus from './OperationStatus.svelte'
-  import { operationStatusStore } from '../../stores/status'
-  import { setOperationStatus } from '../../stores/status'
-  import { exportProjectZip } from '../../services/export/exporter'
-  import { markDirty, markSaved } from '../../stores/editor'
-  import { createAutosaveCoordinator } from '../../services/persistence/autosave'
-  import { bootstrapRestore } from '../../services/persistence/restore'
-  import { moveFocusToNextPanel } from '../../services/a11y/focus-manager'
-  import { registerGlobalShortcuts } from '../../services/editor/shortcuts'
-  import {
-    editorActionHistoryStore,
-    recordProjectSnapshot,
-    redo,
-    undo,
-  } from '../../stores/editor-actions'
 
-  const autosave = createAutosaveCoordinator(500)
+  function getInitialSelection(project: RichProject): string {
+    const firstSectionId = project.nodes[project.rootNodeId]?.children[0]
+    if (!firstSectionId) return project.rootNodeId
+    const firstChildId = project.nodes[firstSectionId]?.children[0]
+    return firstChildId ?? firstSectionId
+  }
 
-  let project: Project = createSampleProject()
-
-  let selectedElementId: string | null = 'text-1'
+  let project: RichProject = createRichSampleProject()
+  let selectedNodeId: string | null = getInitialSelection(project)
   let isExporting = false
   let activePanel = 'layers'
-  let unregisterShortcuts: (() => void) | null = null
 
-  $: statuses = $operationStatusStore
-  $: actionHistory = $editorActionHistoryStore
-  $: selectedElement = selectedElementId ? project.nodes[selectedElementId] ?? null : null
-  $: storageBannerVisible = statuses.autosave.state === 'error'
+  $: activeTheme = $activeThemeStore
+  $: selectedNode = selectedNodeId ? project.nodes[selectedNodeId] ?? null : null
+  $: applyThemeToDom(activeTheme.tokens)
+  $: if (project.theme.id !== activeTheme.id || project.theme.label !== activeTheme.label) {
+    project = {
+      ...project,
+      theme: {
+        id: activeTheme.id,
+        label: activeTheme.label,
+      },
+    }
+  }
 
   onMount(() => {
-    const restored = bootstrapRestore()
-    project = restored.project
-    selectedElementId = restored.project.nodes['text-1'] ? 'text-1' : restored.project.rootNodeId
-
-    unregisterShortcuts = registerGlobalShortcuts({
-      undo: () => undoAction(),
-      redo: () => redoAction(),
-      exportZip: () => {
-        void exportZip()
-      },
-      focusNextPanel: () => {
-        moveFocusToNextPanel()
-      },
-    })
+    applyThemeToDom(activeTheme.tokens)
   })
 
-  onDestroy(() => {
-    autosave.stop()
-    unregisterShortcuts?.()
-  })
-
-  function selectElement(id: string): void {
-    selectedElementId = id
+  function selectNode(id: string): void {
+    selectedNodeId = id
   }
 
-  function updateSelectedText(value: string): void {
-    if (!selectedElementId) return
-    recordProjectSnapshot(project)
-    project = updateElementContent(project, selectedElementId, { text: value })
-    autosave.schedule(project)
-    markDirty()
+  function handleProjectChange(nextProject: RichProject): void {
+    project = {
+      ...nextProject,
+      theme: {
+        id: activeTheme.id,
+        label: activeTheme.label,
+      },
+    }
   }
 
-  function updateSelectedColor(value: string): void {
-    if (!selectedElementId) return
-    recordProjectSnapshot(project)
-    project = updateElementInlineStyle(project, selectedElementId, { color: value })
-    autosave.schedule(project)
-    markDirty()
-  }
-
-  function retryAutosave(): void {
-    autosave.flush(project)
-  }
-
-  function undoAction(): void {
-    const previous = undo(project)
-    if (!previous) return
-
-    project = previous
-    autosave.schedule(project)
-    setOperationStatus('validation', 'success', 'Undo applied')
-  }
-
-  function redoAction(): void {
-    const next = redo(project)
-    if (!next) return
-
-    project = next
-    autosave.schedule(project)
-    setOperationStatus('validation', 'success', 'Redo applied')
+  function handleNodeChange(updatedNode: LayerNode): void {
+    project = {
+      ...project,
+      updatedAt: new Date().toISOString(),
+      nodes: {
+        ...project.nodes,
+        [updatedNode.id]: updatedNode,
+      },
+    }
   }
 
   function triggerDownload(bytes: Uint8Array, filename: string): void {
@@ -120,15 +83,10 @@
 
   async function exportZip(): Promise<void> {
     isExporting = true
-    setOperationStatus('export', 'running', 'Building ZIP...')
 
     try {
-      const bytes = exportProjectZip(project)
+      const bytes = exportRichProjectZip(project)
       triggerDownload(bytes, `${project.name}.zip`)
-      setOperationStatus('export', 'success', 'Static ZIP ready')
-      markSaved()
-    } catch {
-      setOperationStatus('export', 'error', 'Export failed')
     } finally {
       isExporting = false
     }
@@ -137,7 +95,7 @@
 
 <div class="editor-shell" role="application" aria-label="WYSIWYG editor shell">
   <TopBar projectName={project.name} {isExporting} onExport={exportZip} />
-  <StorageStatusBanner visible={storageBannerVisible} message={statuses.autosave.message ?? ''} onRetry={retryAutosave} />
+  <Toolbar />
 
   <main class="workspace">
     <div
@@ -151,7 +109,7 @@
         activePanel = 'layers'
       }}
     >
-      <LayersTree {project} {selectedElementId} onSelect={selectElement} />
+      <LayersPanel {project} {selectedNodeId} onSelect={selectNode} onProjectChange={handleProjectChange} />
     </div>
 
     <div
@@ -165,7 +123,7 @@
         activePanel = 'canvas'
       }}
     >
-      <CanvasViewport {project} {selectedElementId} onSelect={selectElement} />
+      <CanvasSurface {project} {selectedNodeId} onSelect={selectNode} />
     </div>
 
     <div
@@ -179,21 +137,16 @@
         activePanel = 'inspector'
       }}
     >
-      <PropertiesPanel
-        {selectedElement}
-        onContentChange={updateSelectedText}
-        onColorChange={updateSelectedColor}
-      />
+      <InspectorPanel {selectedNode} onNodeChange={handleNodeChange} />
     </div>
   </main>
 
   <footer class="status" aria-live="polite">
-    <span>Autosave: {statuses.autosave.state}</span>
-    <span>Restore: {statuses.restore.state}</span>
-    <span>Export: {statuses.export.state}</span>
-    <span>History: {actionHistory.past.length} undo / {actionHistory.future.length} redo</span>
+    <span>Selected: {selectedNode?.name ?? 'None'}</span>
+    <span>Type: {selectedNode?.type ?? 'n/a'}</span>
+    <span>Theme: {activeTheme.label}</span>
+    <span>Nodes: {Object.keys(project.nodes).length}</span>
     <span>Panel: {activePanel}</span>
-    <OperationStatus />
   </footer>
 </div>
 

@@ -32,18 +32,24 @@
     {#if renderModel}
       {#each renderModel.tree.children as sectionNode}
         {#if sectionNode.visible}
-          <div
+          <section
             class="canvas-section"
             class:selected={selectedNodeId === sectionNode.id}
             data-node-id={sectionNode.id}
             data-testid={`canvas-node-${sectionNode.id}`}
             style={getNodeStyle(sectionNode)}
-            tabindex="0"
             role="group"
-            aria-label={`Section: ${sectionNode.id}`}
-            onclick={() => onSelect(sectionNode.id)}
-            onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(sectionNode.id) }}
+            aria-labelledby={`section-select-${sectionNode.id}`}
           >
+            <button
+              type="button"
+              id={`section-select-${sectionNode.id}`}
+              class="section-select"
+              class:selected={selectedNodeId === sectionNode.id}
+              onclick={() => onSelect(sectionNode.id)}
+            >
+              Section: {sectionNode.id}
+            </button>
             {#each sectionNode.children as childNode}
               {#if childNode.visible}
                 {#if childNode.type === 'header'}
@@ -90,27 +96,32 @@
                   </button>
                 {:else if childNode.type === 'picture'}
                   {@const pp = childNode.props as { src: string; alt: string; caption?: string }}
-                  <button
-                    type="button"
+                  <figure
                     class="canvas-node canvas-picture"
                     class:selected={selectedNodeId === childNode.id}
                     data-node-id={childNode.id}
                     data-testid={`canvas-node-${childNode.id}`}
-                    onclick={(e) => { e.stopPropagation(); onSelect(childNode.id); }}
                   >
-                    {#if pp.src}
-                      <img src={pp.src} alt={pp.alt} class="canvas-img" />
-                    {:else}
-                      <div class="picture-placeholder" aria-label="Picture placeholder">🖼 {pp.alt || 'Picture'}</div>
-                    {/if}
+                    <button
+                      type="button"
+                      class="picture-select"
+                      aria-label={pp.alt || 'Picture'}
+                      onclick={(e) => { e.stopPropagation(); onSelect(childNode.id); }}
+                    >
+                      {#if pp.src}
+                        <img src={pp.src} alt={pp.alt} class="canvas-img" />
+                      {:else}
+                        <div class="picture-placeholder" aria-label="Picture placeholder">🖼 {pp.alt || 'Picture'}</div>
+                      {/if}
+                    </button>
                     {#if pp.caption}
                       <figcaption class="picture-caption">{pp.caption}</figcaption>
                     {/if}
-                  </button>
+                  </figure>
                 {/if}
               {/if}
             {/each}
-          </div>
+          </section>
         {/if}
       {/each}
     {:else}
@@ -148,6 +159,22 @@
     gap: 0.5rem;
     background: #f9fafb;
     cursor: pointer;
+  }
+
+  .section-select {
+    align-self: flex-start;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #475569;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+  }
+
+  .section-select.selected {
+    border-color: #2563eb;
+    color: #1d4ed8;
   }
 
   .canvas-section.selected {
@@ -200,6 +227,15 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.35rem;
+  }
+
+  .picture-select {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
   }
 
   .canvas-img {
