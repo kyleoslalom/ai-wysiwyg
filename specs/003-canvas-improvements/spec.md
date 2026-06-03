@@ -121,13 +121,21 @@ only on hover/selection.
 
 ### Edge Cases
 
-- What happens when a drag begins on an element inside a deeply nested container — does the
-  drop scope stay within the same container or allow cross-container moves?
-- How does the canvas handle extremely large or complex projects where full-fidelity rendering
-  may affect scroll performance?
-- How is the interaction border rendered for elements with custom border styles already applied
-  — does the selection border visually conflict with the element's own border?
-- What happens if an element's theme-dependent style token is undefined in the active theme?
+- **Drag scope in nested containers**: Drag-and-drop is scoped to the full document tree;
+  elements can be moved into any container. Invalid drop targets show a "no-drop" cursor.
+  If the source element is deleted mid-drag, the drag is cancelled silently and state is
+  restored.
+- **Large project performance**: Full-fidelity rendering may affect scroll performance on
+  projects exceeding ~50 elements. Canvas rendering must remain at or above baseline
+  performance (no visible frame drops) within that threshold. Beyond it, graceful degradation
+  is acceptable.
+- **Interaction borders with custom element borders**: Interaction borders use CSS `outline`
+  (e.g., 2px solid blue) placed outside the element's own border layer, so no visual conflict
+  occurs. The `outline` is naturally excluded from export output.
+- **Undefined theme tokens**: If an element's theme-dependent style token is undefined in the
+  active theme, the canvas falls back to a sensible default token from the opposite theme or
+  a hardcoded safe value. The editor MUST log a warning (console) but MUST NOT crash or leave
+  the element invisible.
 
 ## Constitution Alignment *(mandatory)*
 
@@ -170,9 +178,10 @@ only on hover/selection.
   order without requiring any additional author action.
 - **FR-009**: The layers panel MUST update its order in real time when elements are
   reordered via drag on the canvas.
-- **FR-010**: The canvas MUST support keyboard-equivalent reordering for authors who cannot
-  use a pointer device (e.g., via keyboard shortcuts or an accessible mechanism in the
-  layers panel).
+- **FR-010**: The canvas MUST support keyboard-equivalent reordering via Alt+↑/↓ keyboard
+  shortcuts in the layers panel, supplemented by optional move up/down buttons.
+- **FR-011**: Canvas rendering MUST use a shared CSS approach — the same CSS classes and DOM
+  structure produced by export, with only interaction overlay chrome added on top.
 
 ### Key Entities
 
@@ -210,11 +219,33 @@ only on hover/selection.
 
 - The canvas currently renders elements using some approximation of their exported styles;
   this feature brings that approximation to full fidelity rather than rebuilding from scratch.
-- Drag-and-drop reordering is scoped to sibling reordering within the same container for
-  this feature; cross-container moves are out of scope.
+- Drag-and-drop reordering is scoped to sibling reordering across the full document tree;
+  elements can be moved into any container, not only their current parent. Cross-branch moves
+  are allowed.
 - The theme system already has tokens defined for light and dark modes; this feature applies
   them to the canvas, not redesigns the token system.
 - Mobile/touch drag-and-drop is a nice-to-have and will be addressed only if it does not
   significantly increase implementation scope.
 - "Most of the screen" means the canvas is the visually dominant area; the exact percentage
   split may be adjusted during implementation to balance usability of side panels.
+- Canvas rendering fidelity uses a shared CSS approach: canvas elements use the same CSS
+  classes and DOM structure produced by export, with only interaction overlay chrome (selection
+  borders) added on top.
+
+## Clarifications
+
+### Session 2026-06-03
+
+- Q: What is the drag-and-drop scope for nested containers? → A: Full tree reorder — elements
+  can be moved into any container, not only their current parent.
+- Q: How should invalid drop targets and mid-drag source deletion be handled? → A: Invalid
+  targets show a "no-drop" cursor; if the source element is deleted mid-drag, cancel the drag
+  silently and restore state.
+- Q: How is rendering fidelity achieved between canvas and export? → A: Shared CSS approach —
+  canvas elements use the same CSS classes and DOM structure as export, with only interaction
+  overlay chrome added on top.
+- Q: What mechanism enables keyboard-equivalent element reordering? → A: Alt+↑/↓ keyboard
+  shortcuts in the layers panel, with optional move up/down buttons.
+- Q: How are interaction borders rendered to avoid conflict with element's own borders? → A:
+  CSS `outline` (e.g., 2px solid blue) placed outside the element's border, never conflicting
+  with element styles.

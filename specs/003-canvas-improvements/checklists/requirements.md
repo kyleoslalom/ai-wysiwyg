@@ -31,6 +31,12 @@
 
 ## Notes
 
-- Drag-and-drop scope is explicitly bounded to same-container sibling reordering; cross-container moves are out of scope and documented in Assumptions.
-- Keyboard reordering (FR-010 / SC-006) is included to satisfy CA-006 accessibility obligation.
-- All success criteria are stated in user-observable terms (percentages, time, visual comparison) with no technology references.
+- Drag-and-drop scope is full tree reorder; elements can be moved into any container.
+  Cross-branch moves are allowed, documented in Assumptions and resolved via clarification.
+- Keyboard reordering (FR-010 / SC-006) uses Alt+↑/↓ shortcuts in the layers panel, satisfying
+  CA-006 accessibility obligation.
+- Canvas rendering uses a shared CSS approach matching export structure (FR-011).
+- Interaction borders use CSS `outline` to avoid conflict with element borders (resolved via
+  clarification).
+- All success criteria are stated in user-observable terms (percentages, time, visual
+  comparison) with no technology references.
