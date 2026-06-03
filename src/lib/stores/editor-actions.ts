@@ -1,9 +1,12 @@
 import { writable } from 'svelte/store'
 import type { Project } from '../domain/types'
+import type { RichProject } from '../domain/schemas/projectSchema'
+
+export type EditorHistoryProject = Project | RichProject
 
 export interface EditorActionHistory {
-  past: Project[]
-  future: Project[]
+  past: EditorHistoryProject[]
+  future: EditorHistoryProject[]
 }
 
 const MAX_HISTORY = 50
@@ -13,7 +16,14 @@ export const editorActionHistoryStore = writable<EditorActionHistory>({
   future: [],
 })
 
-export function recordProjectSnapshot(project: Project): void {
+export function clearActionHistory(): void {
+  editorActionHistoryStore.set({
+    past: [],
+    future: [],
+  })
+}
+
+export function recordProjectSnapshot<T extends EditorHistoryProject>(project: T): void {
   editorActionHistoryStore.update((history) => {
     const nextPast = [...history.past, structuredClone(project)]
     return {
@@ -23,8 +33,8 @@ export function recordProjectSnapshot(project: Project): void {
   })
 }
 
-export function undo(current: Project): Project | null {
-  let nextProject: Project | null = null
+export function undo<T extends EditorHistoryProject>(current: T): T | null {
+  let nextProject: T | null = null
 
   editorActionHistoryStore.update((history) => {
     if (history.past.length === 0) return history
@@ -33,7 +43,7 @@ export function undo(current: Project): Project | null {
     const previous = nextPast.pop()
     if (!previous) return history
 
-    nextProject = previous
+    nextProject = previous as T
     return {
       past: nextPast,
       future: [...history.future, structuredClone(current)],
@@ -43,8 +53,8 @@ export function undo(current: Project): Project | null {
   return nextProject
 }
 
-export function redo(current: Project): Project | null {
-  let nextProject: Project | null = null
+export function redo<T extends EditorHistoryProject>(current: T): T | null {
+  let nextProject: T | null = null
 
   editorActionHistoryStore.update((history) => {
     if (history.future.length === 0) return history
@@ -53,7 +63,7 @@ export function redo(current: Project): Project | null {
     const restored = nextFuture.pop()
     if (!restored) return history
 
-    nextProject = restored
+    nextProject = restored as T
     return {
       past: [...history.past, structuredClone(current)],
       future: nextFuture,

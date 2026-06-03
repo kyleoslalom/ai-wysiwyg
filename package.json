@@ -18,7 +18,9 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/svelte": "^5.3.1",
     "@tsconfig/svelte": "^5.0.8",
+    "@types/dompurify": "^3.0.5",
     "@types/node": "^24.12.3",
+    "@types/pngjs": "^6.0.5",
     "jsdom": "^29.1.1",
     "playwright": "^1.60.0",
     "svelte": "^5.55.5",
@@ -29,6 +31,10 @@
   },
   "dependencies": {
     "bits-ui": "^2.18.1",
-    "fflate": "^0.8.3"
+    "colord": "^2.9.3",
+    "dompurify": "^3.4.7",
+    "fflate": "^0.8.3",
+    "pixelmatch": "^7.2.0",
+    "pngjs": "^7.0.0"
   }
 }
