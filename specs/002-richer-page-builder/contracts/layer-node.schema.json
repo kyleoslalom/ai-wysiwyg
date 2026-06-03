@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-wysiwyg.local/contracts/richer-page-builder/layer-node.schema.json",
+  "title": "LayerNode",
+  "type": "object",
+  "required": ["id", "type", "parentId", "children", "name", "visible", "props", "style"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "type": {
+      "type": "string",
+      "enum": ["section", "header", "text", "columns", "picture"]
+    },
+    "parentId": {
+      "type": ["string", "null"],
+      "minLength": 1
+    },
+    "children": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "visible": { "type": "boolean" },
+    "style": {
+      "type": "object",
+      "properties": {
+        "spacing": { "type": "object" },
+        "alignment": { "type": "object" },
+        "background": { "type": "object" },
+        "textColor": { "type": ["string", "null"] }
+      },
+      "required": ["spacing", "alignment", "background"],
+      "additionalProperties": true
+    },
+    "props": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["headerLevel", "text"],
+          "properties": {
+            "headerLevel": { "type": "string", "enum": ["h1", "h2", "h3", "h4", "h5", "h6"] },
+            "text": { "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": ["content"],
+          "properties": {
+            "content": { "type": "string" },
+            "link": {
+              "type": "object",
+              "properties": {
+                "href": { "type": "string" },
+                "target": { "type": "string" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": ["columnCount", "gap", "collapseBreakpointPx"],
+          "properties": {
+            "columnCount": { "type": "integer", "minimum": 1, "maximum": 6 },
+            "gap": { "type": "string", "minLength": 1 },
+            "collapseBreakpointPx": { "type": "integer", "const": 768 },
+            "manualWidths": {
+              "type": "array",
+              "items": { "type": "number", "exclusiveMinimum": 0 },
+              "minItems": 1
+            },
+            "normalizedWidths": {
+              "type": "array",
+              "items": { "type": "number", "exclusiveMinimum": 0 },
+              "minItems": 1
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": ["assetRef", "alt"],
+          "properties": {
+            "assetRef": { "type": "string", "pattern": "^assets/images/" },
+            "alt": { "type": "string" },
+            "caption": { "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": [],
+          "additionalProperties": true
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": { "const": "header" }
+        }
+      },
+      "then": {
+        "properties": {
+          "parentId": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

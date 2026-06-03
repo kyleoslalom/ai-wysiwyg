@@ -1,47 +1,65 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte'
-  import type { Project } from '../../domain/types'
-  import { updateElementContent, updateElementInlineStyle } from '../../domain/project/canvas-element'
-  import { createSampleProject } from '../../domain/project/sample-project'
-  import CanvasViewport from '../canvas/CanvasViewport.svelte'
-  import LayersTree from '../layers/LayersTree.svelte'
-  import PropertiesPanel from '../inspector/PropertiesPanel.svelte'
-  import TopBar from './TopBar.svelte'
+  import type { LayerNode } from '../../domain/schemas/layerNodeSchema'
+  import type { RichProject } from '../../domain/schemas/projectSchema'
+  import { createRichSampleProject } from '../../domain/project/rich-sample-project'
+  import CanvasSurface from '../canvas/CanvasSurface.svelte'
+  import InspectorPanel from '../inspector/InspectorPanel.svelte'
+  import LayersPanel from '../layers/LayersPanel.svelte'
   import StorageStatusBanner from './StorageStatusBanner.svelte'
   import OperationStatus from './OperationStatus.svelte'
-  import { operationStatusStore } from '../../stores/status'
-  import { setOperationStatus } from '../../stores/status'
-  import { exportProjectZip } from '../../services/export/exporter'
-  import { markDirty, markSaved } from '../../stores/editor'
-  import { createAutosaveCoordinator } from '../../services/persistence/autosave'
-  import { bootstrapRestore } from '../../services/persistence/restore'
+  import { exportRichProjectZip } from '../../services/export/richExporter'
   import { moveFocusToNextPanel } from '../../services/a11y/focus-manager'
   import { registerGlobalShortcuts } from '../../services/editor/shortcuts'
-  import {
-    editorActionHistoryStore,
-    recordProjectSnapshot,
-    redo,
-    undo,
-  } from '../../stores/editor-actions'
+  import { createAutosaveCoordinator } from '../../services/persistence/autosave'
+  import { bootstrapRichRestore } from '../../services/persistence/restore'
+  import { activeRichProjectStore } from '../../stores/editorStore'
+  import { editorActionHistoryStore, clearActionHistory, recordProjectSnapshot, redo, undo } from '../../stores/editor-actions'
+  import { operationStatusStore, setOperationStatus } from '../../stores/status'
+  import { activeThemeStore, applyThemeToDom } from '../../stores/themeStore'
+  import Toolbar from './Toolbar.svelte'
+  import TopBar from './TopBar.svelte'
 
-  const autosave = createAutosaveCoordinator(500)
+  const autosave = createAutosaveCoordinator<RichProject>(500)
 
-  let project: Project = createSampleProject()
+  function getInitialSelection(project: RichProject): string {
+    const firstSectionId = project.nodes[project.rootNodeId]?.children[0]
+    if (!firstSectionId) return project.rootNodeId
+    const firstChildId = project.nodes[firstSectionId]?.children[0]
+    return firstChildId ?? firstSectionId
+  }
 
-  let selectedElementId: string | null = 'text-1'
+  let project: RichProject = createRichSampleProject()
+  let selectedNodeId: string | null = getInitialSelection(project)
   let isExporting = false
   let activePanel = 'layers'
   let unregisterShortcuts: (() => void) | null = null
+  let mounted = false
 
+  $: activeTheme = $activeThemeStore
   $: statuses = $operationStatusStore
   $: actionHistory = $editorActionHistoryStore
-  $: selectedElement = selectedElementId ? project.nodes[selectedElementId] ?? null : null
+  $: selectedNode = selectedNodeId ? project.nodes[selectedNodeId] ?? null : null
   $: storageBannerVisible = statuses.autosave.state === 'error'
+  $: applyThemeToDom(activeTheme.tokens)
+  $: if (mounted && (project.theme.id !== activeTheme.id || project.theme.label !== activeTheme.label)) {
+    applyProjectChange({
+      ...project,
+      theme: {
+        id: activeTheme.id,
+        label: activeTheme.label,
+      },
+    })
+  }
 
   onMount(() => {
-    const restored = bootstrapRestore()
-    project = restored.project
-    selectedElementId = restored.project.nodes['text-1'] ? 'text-1' : restored.project.rootNodeId
+    const restored = bootstrapRichRestore()
+    project = withActiveTheme(restored.project)
+    activeRichProjectStore.set(project)
+    selectedNodeId = getValidSelection(project)
+    clearActionHistory()
+    applyThemeToDom(activeTheme.tokens)
+    mounted = true
 
     unregisterShortcuts = registerGlobalShortcuts({
       undo: () => undoAction(),
@@ -60,24 +78,57 @@
     unregisterShortcuts?.()
   })
 
-  function selectElement(id: string): void {
-    selectedElementId = id
+  function withActiveTheme(nextProject: RichProject): RichProject {
+    return {
+      ...nextProject,
+      theme: {
+        id: activeTheme.id,
+        label: activeTheme.label,
+      },
+    }
   }
 
-  function updateSelectedText(value: string): void {
-    if (!selectedElementId) return
-    recordProjectSnapshot(project)
-    project = updateElementContent(project, selectedElementId, { text: value })
-    autosave.schedule(project)
-    markDirty()
+  function getValidSelection(nextProject: RichProject): string {
+    if (selectedNodeId && nextProject.nodes[selectedNodeId]) {
+      return selectedNodeId
+    }
+
+    return getInitialSelection(nextProject)
   }
 
-  function updateSelectedColor(value: string): void {
-    if (!selectedElementId) return
-    recordProjectSnapshot(project)
-    project = updateElementInlineStyle(project, selectedElementId, { color: value })
-    autosave.schedule(project)
-    markDirty()
+  function applyProjectChange(nextProject: RichProject, options?: { recordHistory?: boolean; autosave?: boolean }): void {
+    if (options?.recordHistory ?? true) {
+      recordProjectSnapshot(project)
+    }
+
+    project = {
+      ...withActiveTheme(nextProject),
+      updatedAt: new Date().toISOString(),
+    }
+    activeRichProjectStore.set(project)
+    selectedNodeId = getValidSelection(project)
+
+    if (options?.autosave ?? true) {
+      autosave.schedule(project)
+    }
+  }
+
+  function selectNode(id: string): void {
+    selectedNodeId = id
+  }
+
+  function handleProjectChange(nextProject: RichProject): void {
+    applyProjectChange(nextProject)
+  }
+
+  function handleNodeChange(updatedNode: LayerNode): void {
+    applyProjectChange({
+      ...project,
+      nodes: {
+        ...project.nodes,
+        [updatedNode.id]: updatedNode,
+      },
+    })
   }
 
   function retryAutosave(): void {
@@ -88,7 +139,9 @@
     const previous = undo(project)
     if (!previous) return
 
-    project = previous
+    project = withActiveTheme(previous)
+    activeRichProjectStore.set(project)
+    selectedNodeId = getValidSelection(project)
     autosave.schedule(project)
     setOperationStatus('validation', 'success', 'Undo applied')
   }
@@ -97,7 +150,9 @@
     const next = redo(project)
     if (!next) return
 
-    project = next
+    project = withActiveTheme(next)
+    activeRichProjectStore.set(project)
+    selectedNodeId = getValidSelection(project)
     autosave.schedule(project)
     setOperationStatus('validation', 'success', 'Redo applied')
   }
@@ -120,13 +175,12 @@
 
   async function exportZip(): Promise<void> {
     isExporting = true
-    setOperationStatus('export', 'running', 'Building ZIP...')
+    setOperationStatus('export', 'running', 'Building rich ZIP...')
 
     try {
-      const bytes = exportProjectZip(project)
+      const bytes = exportRichProjectZip(project)
       triggerDownload(bytes, `${project.name}.zip`)
       setOperationStatus('export', 'success', 'Static ZIP ready')
-      markSaved()
     } catch {
       setOperationStatus('export', 'error', 'Export failed')
     } finally {
@@ -136,7 +190,16 @@
 </script>
 
 <div class="editor-shell" role="application" aria-label="WYSIWYG editor shell">
-  <TopBar projectName={project.name} {isExporting} onExport={exportZip} />
+  <TopBar
+    projectName={project.name}
+    {isExporting}
+    canUndo={actionHistory.past.length > 0}
+    canRedo={actionHistory.future.length > 0}
+    onUndo={undoAction}
+    onRedo={redoAction}
+    onExport={exportZip}
+  />
+  <Toolbar />
   <StorageStatusBanner visible={storageBannerVisible} message={statuses.autosave.message ?? ''} onRetry={retryAutosave} />
 
   <main class="workspace">
@@ -151,7 +214,7 @@
         activePanel = 'layers'
       }}
     >
-      <LayersTree {project} {selectedElementId} onSelect={selectElement} />
+      <LayersPanel {project} {selectedNodeId} onSelect={selectNode} onProjectChange={handleProjectChange} />
     </div>
 
     <div
@@ -165,7 +228,7 @@
         activePanel = 'canvas'
       }}
     >
-      <CanvasViewport {project} {selectedElementId} onSelect={selectElement} />
+      <CanvasSurface {project} {selectedNodeId} onSelect={selectNode} />
     </div>
 
     <div
@@ -179,11 +242,7 @@
         activePanel = 'inspector'
       }}
     >
-      <PropertiesPanel
-        {selectedElement}
-        onContentChange={updateSelectedText}
-        onColorChange={updateSelectedColor}
-      />
+      <InspectorPanel {selectedNode} onNodeChange={handleNodeChange} />
     </div>
   </main>
 
@@ -192,6 +251,7 @@
     <span>Restore: {statuses.restore.state}</span>
     <span>Export: {statuses.export.state}</span>
     <span>History: {actionHistory.past.length} undo / {actionHistory.future.length} redo</span>
+    <span>Selected: {selectedNode?.name ?? 'None'}</span>
     <span>Panel: {activePanel}</span>
     <OperationStatus />
   </footer>

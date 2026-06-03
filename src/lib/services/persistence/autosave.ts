@@ -1,12 +1,15 @@
-import type { Project } from '../../domain/types'
 import { saveToLocalStorage } from './local-storage'
 import { setOperationStatus } from '../../stores/status'
 
 const PROJECT_PREFIX = 'ai-wysiwyg:project:'
 
-export interface AutosaveCoordinator {
-  schedule: (project: Project) => void
-  flush: (project: Project) => void
+interface PersistableProject {
+  id: string
+}
+
+export interface AutosaveCoordinator<T extends PersistableProject = PersistableProject> {
+  schedule: (project: T) => void
+  flush: (project: T) => void
   stop: () => void
 }
 
@@ -14,11 +17,11 @@ export function projectStorageKey(projectId: string): string {
   return `${PROJECT_PREFIX}${projectId}`
 }
 
-export function createAutosaveCoordinator(delayMs = 500): AutosaveCoordinator {
+export function createAutosaveCoordinator<T extends PersistableProject>(delayMs = 500): AutosaveCoordinator<T> {
   let timer: ReturnType<typeof setTimeout> | null = null
   let paused = false
 
-  const flush = (project: Project): void => {
+  const flush = (project: T): void => {
     const ok = saveToLocalStorage(projectStorageKey(project.id), project)
     if (ok) {
       paused = false
@@ -29,7 +32,7 @@ export function createAutosaveCoordinator(delayMs = 500): AutosaveCoordinator {
     }
   }
 
-  const schedule = (project: Project): void => {
+  const schedule = (project: T): void => {
     if (paused) return
     setOperationStatus('autosave', 'running', 'Saving...')
 

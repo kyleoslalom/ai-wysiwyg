@@ -1,0 +1,98 @@
+{
+  "id": "fixture-mixed-layout-001",
+  "name": "Mixed Layout Fixture",
+  "createdAt": "2026-06-02T00:00:00.000Z",
+  "updatedAt": "2026-06-02T00:00:00.000Z",
+  "rootNodeId": "root",
+  "theme": { "id": "default", "label": "Default" },
+  "assets": {
+    "img-001": {
+      "assetId": "img-001",
+      "kind": "image",
+      "mimeType": "image/png",
+      "originalName": "sample.png",
+      "canonicalPath": "assets/images/img-001.png",
+      "bytes": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "hash": "sha256-placeholder"
+    }
+  },
+  "nodes": {
+    "root": {
+      "id": "root",
+      "type": "section",
+      "parentId": null,
+      "children": ["section-1"],
+      "name": "Root",
+      "visible": true,
+      "style": { "spacing": {}, "alignment": {}, "background": {} },
+      "props": {}
+    },
+    "section-1": {
+      "id": "section-1",
+      "type": "section",
+      "parentId": "root",
+      "children": ["header-1", "text-1", "columns-1", "picture-1"],
+      "name": "Main Section",
+      "visible": true,
+      "style": { "spacing": { "padding": "1rem" }, "alignment": {}, "background": {} },
+      "props": {}
+    },
+    "header-1": {
+      "id": "header-1",
+      "type": "header",
+      "parentId": "section-1",
+      "children": [],
+      "name": "Page Header",
+      "visible": true,
+      "style": { "spacing": {}, "alignment": {}, "background": {}, "textColor": "#1f2937" },
+      "props": {
+        "headerLevel": "h1",
+        "text": "Welcome to the Page Builder"
+      }
+    },
+    "text-1": {
+      "id": "text-1",
+      "type": "text",
+      "parentId": "section-1",
+      "children": [],
+      "name": "Body Text",
+      "visible": true,
+      "style": { "spacing": {}, "alignment": {}, "background": {}, "textColor": "#374151" },
+      "props": {
+        "content": "This is a sample paragraph demonstrating the richer page builder.",
+        "link": null
+      }
+    },
+    "columns-1": {
+      "id": "columns-1",
+      "type": "columns",
+      "parentId": "section-1",
+      "children": [],
+      "name": "Two Columns",
+      "visible": true,
+      "style": { "spacing": {}, "alignment": {}, "background": {} },
+      "props": {
+        "columnCount": 2,
+        "gap": "1rem",
+        "collapseBreakpointPx": 768,
+        "manualWidths": [50, 50],
+        "normalizedWidths": [50, 50]
+      }
+    },
+    "picture-1": {
+      "id": "picture-1",
+      "type": "picture",
+      "parentId": "section-1",
+      "children": [],
+      "name": "Sample Image",
+      "visible": true,
+      "style": { "spacing": {}, "alignment": {}, "background": {} },
+      "props": {
+        "assetRef": "assets/images/img-001.png",
+        "alt": "A sample image",
+        "caption": "Figure 1"
+      }
+    }
+  },
+  "version": 2
+}
